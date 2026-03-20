@@ -169,36 +169,9 @@
     #renderedOutput {
       display: none;
       margin-top: 2rem;
-      background: #fff;
-      border: 2px solid #222;
-      border-radius: 6px;
-      padding: 1.25rem;
-      font-family: 'Literata', Georgia, serif;
-      font-size: 15px;
-      color: #111;
-      line-height: 1.5;
     }
-    #renderedOutput .sb-header {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 6px;
-    }
-    #renderedOutput .sb-name { font-size: 20px; font-weight: bold; }
-    #renderedOutput .sb-sub { font-size: 13px; color: #444; }
-    #renderedOutput .sb-cl { text-align: right; font-size: 20px; font-weight: bold; }
-    #renderedOutput .sb-theme { text-align: right; font-size: 13px; color: #444; }
-    #renderedOutput .sb-status { font-size: 14px; margin-bottom: 8px; }
-    #renderedOutput table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-    #renderedOutput th { background: #eee; padding: 3px 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    #renderedOutput td { padding: 2px 6px; border-bottom: 1px solid #ddd; font-size: 14px; }
-    #renderedOutput .sb-section-title { font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000; margin: 8px 0 4px; padding-bottom: 2px; }
-    #renderedOutput .sb-entry { margin-bottom: 5px; font-size: 14px; }
-    #renderedOutput .sb-entry b { font-weight: bold; }
-    #renderedOutput .sb-entry i { font-style: italic; color: #333; }
-
-    @media (min-width: 900px) {
-      #renderedOutput .sb-two-col { column-count: 2; column-gap: 20px; }
-      #renderedOutput .sb-no-break { break-inside: avoid; }
-    }
+    #renderedOutput table { border-collapse: collapse; }
+    #renderedOutput th, #renderedOutput td { text-align: left; }
 
     .helper { font-size: 0.82rem; color: var(--text-dim); margin-top: 0.4rem; line-height: 1.5; }
   </style>
@@ -557,6 +530,18 @@
   /* ─── Render ─── */
   function getVal(id) { return document.getElementById(id)?.value || ''; }
 
+  // Inline style constants matching original
+  const S = {
+    noBreak: 'break-inside:avoid; page-break-inside:avoid; -webkit-column-break-inside:avoid; display:block; width:100%;',
+    sectionTitle: 'font-family:"Literata",serif; font-weight:700; font-size:1.1em; color:#222; text-transform:uppercase; letter-spacing:0.5px; margin:6px 0 4px; border-bottom:2px solid #000; padding-bottom:2px; display:block;',
+    entry: 'font-family:"Literata",serif; font-size:14px; margin-bottom:5px; display:block;',
+  };
+
+  function sectionBlock(title, innerHTML) {
+    if (!innerHTML.trim()) return '';
+    return `<div style="${S.noBreak}"><div style="${S.sectionTitle}">${title}</div>${innerHTML}</div>`;
+  }
+
   function renderStatBlock() {
     const isMythic = document.getElementById('mythicToggle').checked;
     let hp = parseInt(getVal('hp')) || 0;
@@ -569,7 +554,7 @@
       hp = Math.floor(hp * 1.5);
       dp = Math.floor(dp * 1.5);
       mp = Math.floor(mp * 1.5);
-      sorce = mp;
+      sorce = String(mp);
       if (!typeSize.toLowerCase().startsWith('mythic')) typeSize = 'Mythic ' + typeSize;
       addMythicTraits(mp);
     }
@@ -581,24 +566,24 @@
       document.getElementById('quick').classList.add('open');
     }
 
-    function tRow(label, val) { return val ? `<b>${label}</b> ${val}<br>` : ''; }
-
-    let traitsHTML = '';
-    ['hpRes','hpVul','hpImm','mpRes','mpVul','mpImm','dpRes','dpVul','dpImm','condImm','speed','langs','senses'].forEach(id => {
-      const labels = {hpRes:'HP Resistance:',hpVul:'HP Vulnerability:',hpImm:'HP Immunity:',mpRes:'MP Resistance:',mpVul:'MP Vulnerability:',mpImm:'MP Immunity:',dpRes:'DP Resistance:',dpVul:'DP Vulnerability:',dpImm:'DP Immunity:',condImm:'Condition Immunity:',speed:'Speed:',langs:'Languages:',senses:'Senses:'};
-      traitsHTML += tRow(labels[id], getVal(id));
+    // ── Traits row (speed, resistances, etc.) ──
+    const traitLabels = {hpRes:'HP Resistance:',hpVul:'HP Vulnerability:',hpImm:'HP Immunity:',mpRes:'MP Resistance:',mpVul:'MP Vulnerability:',mpImm:'MP Immunity:',dpRes:'DP Resistance:',dpVul:'DP Vulnerability:',dpImm:'DP Immunity:',condImm:'Condition Immunity:',speed:'Speed:',langs:'Languages:',senses:'Senses:'};
+    let traitsInner = '';
+    Object.entries(traitLabels).forEach(([id, label]) => {
+      const v = getVal(id);
+      if (v) traitsInner += `<b>${label}</b> ${v}<br>`;
     });
+    const traitsHTML = traitsInner ? `<div style="${S.noBreak}">${traitsInner}</div>` : '';
 
-    // Skills table
+    // ── Condensed skills table ──
     const attrLabels = {STR:'STRENGTH',AGI:'AGILITY',WIT:'WITS',EMP:'EMPATHY'};
     const attrPairs = [['STR','AGI'],['WIT','EMP']];
-    let skillsHTML = `<table border="1" cellpadding="4" style="border-collapse:collapse;width:100%;margin-bottom:10px;font-size:13px;">`;
+    let skillsHTML = `<table border="1" cellpadding="4" style="border-collapse:collapse;width:100%;margin-bottom:10px;">`;
     attrPairs.forEach(([la, ra]) => {
       const lv = parseInt(getVal(la))||0, rv = parseInt(getVal(ra))||0;
       skillsHTML += `<tr style="background:#eee;"><th>${attrLabels[la]}</th><th>${lv}</th><th>${attrLabels[ra]}</th><th>${rv}</th></tr>`;
       const ls = SKILLS[la], rs = SKILLS[ra];
-      const maxLen = Math.max(ls.length, rs.length);
-      for (let i = 0; i < maxLen; i++) {
+      for (let i = 0; i < Math.max(ls.length, rs.length); i++) {
         const lRow = [...document.querySelectorAll('#skillsTable tr')].find(r => r.cells[0]?.textContent === (ls[i]||''));
         const rRow = [...document.querySelectorAll('#skillsTable tr')].find(r => r.cells[0]?.textContent === (rs[i]||''));
         const lVal = lRow ? lRow.querySelector('input').value : '';
@@ -610,42 +595,36 @@
     });
     skillsHTML += '</table>';
 
-    // Passives
-    let passivesHTML = '';
+    // ── Passive Traits ──
+    let passivesInner = '';
     if (document.getElementById('passiveToggle').checked) {
-      const entries = [...document.querySelectorAll('#passivesList .action-entry')];
-      if (entries.length) {
-        passivesHTML = `<div class="sb-no-break"><div class="sb-section-title">Traits</div>`;
-        entries.forEach(e => {
-          const name = e.querySelector('.entryName')?.value || '';
-          const text = e.querySelector('.entryText')?.value || '';
-          if (name||text) passivesHTML += `<div class="sb-entry"><b>${name}</b>${name&&text?': ':''}${text}</div>`;
-        });
-        passivesHTML += '</div>';
-      }
+      document.querySelectorAll('#passivesList .action-entry').forEach(e => {
+        const name = e.querySelector('.entryName')?.value||'';
+        const text = e.querySelector('.entryText')?.value||'';
+        if (name||text) passivesInner += `<div style="${S.noBreak} ${S.entry}"><b>${name}</b>${name&&text?': ':''}${text}</div>`;
+      });
     }
+    const passivesHTML = sectionBlock('Traits', passivesInner);
 
-    // Spells
-    let spellsHTML = '';
+    // ── Spells ──
+    let spellsInner = '';
     if (document.getElementById('spellToggle').checked) {
-      spellsHTML = `<div class="sb-no-break"><div class="sb-section-title">Spells Prepared</div>`;
       document.querySelectorAll('#spellChecksList .spell-check-entry').forEach(div => {
-        const src = div.querySelector('.spellSource')?.value || '';
-        const study = div.querySelector('.studyOf')?.value || '';
-        const inset = div.querySelector('.spellInset')?.value || '';
-        if (src === 'Study of') spellsHTML += `<div class="sb-entry">Spell Check (Study of ${study}): ${inset}</div>`;
-        else spellsHTML += `<div class="sb-entry">Spell Check (Innate): ${inset}</div>`;
+        const src = div.querySelector('.spellSource')?.value||'';
+        const study = div.querySelector('.studyOf')?.value||'';
+        const inset = div.querySelector('.spellInset')?.value||'';
+        spellsInner += `<div style="${S.entry}">Spell Check (${src === 'Study of' ? `Study of ${study}` : 'Innate'}): ${inset}</div>`;
       });
       document.querySelectorAll('#spellsList .spell-entry').forEach(div => {
-        const rank = div.querySelector('.spellRank')?.value || '';
-        const names = div.querySelector('.spellName')?.value || '';
-        if (rank||names) spellsHTML += `<div class="sb-entry"><b>Rank ${rank}:</b> ${names}</div>`;
+        const rank = div.querySelector('.spellRank')?.value||'';
+        const names = div.querySelector('.spellName')?.value||'';
+        if (rank||names) spellsInner += `<div style="${S.entry}"><b>Rank ${rank}:</b> ${names}</div>`;
       });
-      spellsHTML += '</div>';
     }
+    const spellsHTML = sectionBlock('Spells Prepared', spellsInner);
 
-    // Standard Actions
-    let stdHTML = `<div class="sb-no-break"><div class="sb-section-title">Standard Actions</div>`;
+    // ── Standard Actions ──
+    let stdInner = '';
     document.querySelectorAll('#standardList .action-entry').forEach(entry => {
       const type = entry.dataset.actionType;
       if (type === 'attack') {
@@ -654,68 +633,81 @@
         const hit  = entry.querySelector('.atkHit')?.value||'';
         const dmg  = entry.querySelector('.atkDmg')?.value||'';
         const eff  = entry.querySelector('.atkEff')?.value||'';
-        stdHTML += `<div class="sb-entry sb-no-break"><b>${name}</b>${feat?` <i>${feat}</i>`:''}<br>`;
-        if (hit) stdHTML += `To Hit: ${hit}<br>`;
-        if (dmg) stdHTML += `Damage: ${dmg}<br>`;
-        if (eff) stdHTML += `Effect: ${eff}`;
-        stdHTML += '</div>';
+        let block = `<b>${name}</b>${feat ? ` <i>${feat}</i>` : ''}<br>`;
+        if (hit) block += `To Hit: ${hit}<br>`;
+        if (dmg) block += `Damage: ${dmg}<br>`;
+        if (eff) block += `Effect: ${eff}`;
+        stdInner += `<div style="${S.noBreak} ${S.entry}">${block}</div>`;
       } else if (type === 'ability') {
         const name = entry.querySelector('.abilName')?.value||'';
         const eff  = entry.querySelector('.abilEff')?.value||'';
-        const hasSave = entry.querySelector('.hasSaveReq')?.checked;
-        const saveTxt = entry.querySelector('.saveReqText')?.value||'';
+        const hasSave  = entry.querySelector('.hasSaveReq')?.checked;
+        const saveTxt  = entry.querySelector('.saveReqText')?.value||'';
         const hasCharge = entry.querySelector('.hasChargeReq')?.checked;
         const chargeTxt = entry.querySelector('.chargeReqText')?.value||'';
-        stdHTML += `<div class="sb-entry sb-no-break"><b>${name}</b>: ${eff}<br>`;
-        if (hasSave && saveTxt) stdHTML += `<i>Skill Save:</i> ${saveTxt}<br>`;
-        if (hasCharge && chargeTxt) stdHTML += `<i>Condition:</i> ${chargeTxt}<br>`;
-        stdHTML += `<i>This ability must be CHARGED to use.</i></div>`;
+        let block = `<b>${name}</b>: ${eff}<br>`;
+        if (hasSave && saveTxt) block += `<i>Skill Save:</i> ${saveTxt}<br>`;
+        if (hasCharge && chargeTxt) block += `<i>Charging Requirement:</i> ${chargeTxt}<br>`;
+        block += `<i>This ability must be CHARGED to use.</i>`;
+        stdInner += `<div style="${S.noBreak} ${S.entry}">${block}</div>`;
       }
     });
-    stdHTML += '</div>';
+    const stdHTML = sectionBlock('Standard Actions', stdInner);
 
-    // Quick Actions
-    const quickActions = [];
-    if (hasAbility) quickActions.push(`<b>Charging:</b> This creature begins charging an ability. After one full round, that ability becomes CHARGED. Once used, it is no longer CHARGED. Each CHARGED ability can be used up to 3 times before requiring an Intermission.`);
+    // ── Quick Actions ──
+    let quickInner = '';
+    if (hasAbility) {
+      quickInner += `<div style="${S.noBreak} ${S.entry}"><b>Charging:</b> This creature begins charging an ability. After one full round, that ability becomes CHARGED. Once used, it is no longer CHARGED. Each CHARGED ability can be used up to 3 times before requiring an Intermission.</div>`;
+    }
     document.querySelectorAll('#quickList .action-entry').forEach(e => {
       const name = e.querySelector('.entryName')?.value||'';
       const text = e.querySelector('.entryText')?.value||'';
-      if (name||text) quickActions.push(`<b>${name}</b>: ${text}`);
+      if (name||text) quickInner += `<div style="${S.noBreak} ${S.entry}"><b>${name}</b>: ${text}</div>`;
     });
-    const quickHTML = quickActions.length ? `<div class="sb-no-break"><div class="sb-section-title">Quick Actions</div>${quickActions.map(q=>`<div class="sb-entry">${q}</div>`).join('')}</div>` : '';
+    const quickHTML = sectionBlock('Quick Actions', quickInner);
 
-    // Reactions
-    let reactHTML = '';
+    // ── Reactions ──
+    let reactInner = '';
     if (document.getElementById('reactionToggle').checked) {
-      const entries = [...document.querySelectorAll('#reactionList .action-entry')];
-      if (entries.length) {
-        reactHTML = `<div class="sb-no-break"><div class="sb-section-title">Reactions</div>`;
-        entries.forEach(e => {
-          const name = e.querySelector('.entryName')?.value||'';
-          const text = e.querySelector('.entryText')?.value||'';
-          if (name||text) reactHTML += `<div class="sb-entry"><b>${name}</b>: ${text}</div>`;
-        });
-        reactHTML += '</div>';
-      }
+      document.querySelectorAll('#reactionList .action-entry').forEach(e => {
+        const name = e.querySelector('.entryName')?.value||'';
+        const text = e.querySelector('.entryText')?.value||'';
+        if (name||text) reactInner += `<div style="${S.noBreak} ${S.entry}"><b>${name}</b>: ${text}</div>`;
+      });
     }
+    const reactHTML = sectionBlock('Reactions', reactInner);
 
+    // ── Assemble ──
     const out = document.getElementById('renderedOutput');
     out.innerHTML = `
-      <div class="sb-header">
-        <div><div class="sb-name">${getVal('name')}</div><div class="sb-sub">${typeSize}</div></div>
-        <div><div class="sb-cl">CL ${getVal('cl')}</div><div class="sb-theme">${getVal('theme')}</div></div>
-      </div>
-      <div class="sb-status"><b>HP:</b> ${hp} &nbsp;|&nbsp; <b>DP:</b> ${dp} &nbsp;|&nbsp; <b>MP:</b> ${mp}${sorce||isMythic?` &nbsp;|&nbsp; <b>Sorce:</b> ${sorce}`:''}</div>
-      <div class="sb-two-col">
-        ${skillsHTML}
-        ${traitsHTML ? `<div class="sb-no-break">${traitsHTML}</div>` : ''}
-        ${passivesHTML}
-        ${spellsHTML}
-        ${stdHTML}
-        ${quickHTML}
-        ${reactHTML}
+      <div style="font-family:'Literata',serif; font-size:16px; padding:8px; border:2px solid #000; background:#fff; color:#111;">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:20px; border-bottom:2px solid black; margin-bottom:10px;">
+          <div>
+            <div>${getVal('name')}</div>
+            <div style="font-size:14px; font-weight:normal;">${typeSize}</div>
+          </div>
+          <div style="text-align:right;">
+            <div>CL ${getVal('cl')}</div>
+            <div style="font-size:14px; font-weight:normal;">${getVal('theme')}</div>
+          </div>
+        </div>
+        <div style="font-size:14px; margin-bottom:8px;">
+          <b>HP:</b> ${hp} &nbsp;|&nbsp; <b>DP:</b> ${dp} &nbsp;|&nbsp; <b>MP:</b> ${mp}${sorce||isMythic ? ` &nbsp;|&nbsp; <b>Sorce:</b> ${sorce}` : ''}
+        </div>
+        <div style="column-count:2; column-gap:20px;">
+          ${skillsHTML}
+          ${traitsHTML}
+          ${passivesHTML}
+          ${spellsHTML}
+          ${stdHTML}
+          ${quickHTML}
+          ${reactHTML}
+        </div>
       </div>`;
     out.style.display = 'block';
+    out.style.border = 'none';
+    out.style.padding = '0';
+    out.style.background = 'transparent';
   }
 
   function addMythicTraits(mp) {
