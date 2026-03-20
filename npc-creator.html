@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NPC Creator — Realms of Legacy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --void: #04060f; --deep: #080d1c; --mid: #0d1630; --surface: #111b3a;
+      --border: rgba(100,160,255,0.15); --border-gold: rgba(201,168,76,0.25);
+      --cyan: #4fc3f7; --gold: #c9a84c; --gold-pale: #e8d5a3;
+      --text: #c8d8f0; --text-dim: #7a90b8; --white: #eef2ff;
+      --font-display: 'Cinzel Decorative', serif;
+      --font-heading: 'Cinzel', serif;
+      --font-body: 'Crimson Pro', serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--void);
+      background-image: radial-gradient(ellipse 70% 50% at 15% 20%, rgba(30,60,160,0.15) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 85% 60%, rgba(79,195,247,0.06) 0%, transparent 60%);
+      color: var(--text); font-family: var(--font-body); font-size: 1rem; line-height: 1.6; min-height: 100vh;
+    }
+    nav { background: rgba(4,6,15,0.97); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: var(--font-display); font-size: 1rem; color: var(--gold); text-decoration: none; white-space: nowrap; }
+    .nav-links { display: flex; list-style: none; gap: 0.25rem; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-links a { color: var(--text-dim); text-decoration: none; font-family: var(--font-heading); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.65rem; border-radius: 3px; transition: color 0.2s, background 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--cyan); background: rgba(79,195,247,0.07); }
+    .nav-toggle { display: none; background: none; border: 1px solid var(--border); color: var(--cyan); padding: 0.4rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 1.1rem; }
+    @media (max-width: 720px) {
+      .nav-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(4,6,15,0.98); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 2rem; gap: 0; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 0.6rem 0; font-size: 0.85rem; }
+    }
+    .page-header { max-width: 900px; margin: 0 auto; padding: 3rem 2rem 2rem; border-bottom: 1px solid var(--border); }
+    .page-header .breadcrumb { font-family: var(--font-heading); font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.6rem; }
+    .page-header .breadcrumb a { color: var(--cyan); text-decoration: none; }
+    .page-header h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.4rem); color: var(--white); margin-bottom: 0.75rem; }
+    .page-header p { font-size: 1.05rem; color: var(--text-dim); line-height: 1.8; max-width: 680px; }
+    .tools-grid { max-width: 900px; margin: 2.5rem auto 5rem; padding: 0 2rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+    @media (max-width: 600px) { .tools-grid { grid-template-columns: 1fr; } }
+    .tool-card { background: rgba(13,22,48,0.75); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; text-decoration: none; transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s; display: block; }
+    .tool-card:hover { border-color: rgba(79,195,247,0.35); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    .tool-card.gold:hover { border-color: rgba(201,168,76,0.4); }
+    .tool-icon { font-size: 2rem; margin-bottom: 0.75rem; display: block; }
+    .tool-title { font-family: var(--font-heading); font-size: 1rem; letter-spacing: 0.05em; color: var(--white); margin-bottom: 0.5rem; }
+    .tool-desc { font-size: 0.95rem; color: var(--text-dim); line-height: 1.7; }
+    .tool-tag { display: inline-block; font-family: var(--font-heading); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 3px; margin-top: 0.75rem; }
+    .tool-tag.internal { color: var(--cyan); background: rgba(79,195,247,0.08); border: 1px solid rgba(79,195,247,0.2); }
+    .tool-tag.external { color: var(--gold); background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="nav-logo">Realms of Legacy</a>
+  <button class="nav-toggle" onclick="this.closest('nav').querySelector('.nav-links').classList.toggle('open')">☰</button>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#about">The Game</a></li>
+    <li><a href="index.html#setting">Setting</a></li>
+    <li><a href="npc-creator.html" class="active">NPC Tools</a></li>
+    <li><a href="index.html#get">Get the Game</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="breadcrumb"><a href="index.html">Home</a> &rsaquo; NPC Creator</p>
+  <h1>NPC Creation Tools</h1>
+  <p>Two tools to help you build NPCs from scratch. Use the Stat Tracker to plan your build and spend BP, then use the Stat Block Generator to produce a formatted, downloadable stat block.</p>
+</div>
+
+<div class="tools-grid">
+  <a href="npc-stat-tracker.html" class="tool-card">
+    <span class="tool-icon">📋</span>
+    <div class="tool-title">NPC Stat Tracker</div>
+    <p class="tool-desc">Track stats and BP spending as you build your NPC from scratch. Set Theme and CL to auto-fill base values, allocate attributes and skills, and download a summary to reference in the generator.</p>
+    <span class="tool-tag internal">On this site</span>
+  </a>
+  <a href="npc-stat-block-generator.html" class="tool-card gold">
+    <span class="tool-icon">⚔</span>
+    <div class="tool-title">NPC Stat Block Generator</div>
+    <p class="tool-desc">Plug in your NPC's details to generate a formatted stat block. Supports attacks, abilities, spells, reactions, and Mythic traits. Save your work as JSON and reload it for future edits.</p>
+    <span class="tool-tag internal">On this site</span>
+  </a>
+  <a href="https://www.realmsoflegacy.com/npc-creator/velistrider-stat-block-generator" target="_blank" class="tool-card">
+    <span class="tool-icon">⛵</span>
+    <div class="tool-title">Veilstrider Stat Block Generator</div>
+    <p class="tool-desc">Create custom NPC Veilstrider stat blocks for ship combat encounters in the Veil.</p>
+    <span class="tool-tag external">External tool</span>
+  </a>
+  <a href="https://www.realmsoflegacy.com/npc-creator/leviathan-stat-block-generator" target="_blank" class="tool-card">
+    <span class="tool-icon">🐉</span>
+    <div class="tool-title">Leviathan Stat Block Generator</div>
+    <p class="tool-desc">Build stat blocks for massive Leviathan-class creatures encountered across the Veil.</p>
+    <span class="tool-tag external">External tool</span>
+  </a>
+</div>
+</body>
+</html>
