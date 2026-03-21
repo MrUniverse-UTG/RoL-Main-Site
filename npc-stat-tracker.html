@@ -418,6 +418,10 @@
     }
     .btn-ghost:hover { color: var(--white); border-color: rgba(100,160,255,0.35); }
     .btn-sm { font-size: 0.75rem; padding: 0.5rem 1rem; }
+    .btn-save { background: rgba(79,195,247,0.08); color: var(--cyan); border: 1px solid rgba(79,195,247,0.3); }
+    .btn-save:hover { background: rgba(79,195,247,0.18); }
+    .btn-load { background: rgba(201,168,76,0.08); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .btn-load:hover { background: rgba(201,168,76,0.18); }
     .btn-group {
       display: flex;
       gap: 0.75rem;
@@ -662,6 +666,9 @@
     <div class="btn-group">
       <button class="btn btn-primary" onclick="generateSummary()">Summarize Stats</button>
       <button class="btn btn-secondary" onclick="downloadImage()">Download Summary</button>
+      <button class="btn btn-save" onclick="saveTrackerJSON()">Save JSON</button>
+      <input type="file" id="trackerJsonFile" accept="application/json" style="display:none" onchange="loadTrackerJSON(this.files[0])">
+      <button class="btn btn-load" onclick="document.getElementById('trackerJsonFile').click()">Load JSON</button>
     </div>
 
   </div>
@@ -985,6 +992,90 @@
     link.href = summaryImageData;
     link.download = name + ' Stat Summary.png';
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+
+  function saveTrackerJSON() {
+    const skillIds = ['skillBrawl','skillMight','skillEndure','skillIntimidate','skillShoot','skillMove',
+      'skillFinesse','skillHide','skillAnalyze','skillInsight','skillScout','skillSurvival',
+      'skillManipulate','skillMedical','skillPerform','skillTame'];
+
+    const data = {
+      version: 1,
+      npcName:          document.getElementById('npcName').value,
+      theme:            document.getElementById('themeSelect').value,
+      cl:               document.getElementById('clSelect').value,
+      statusIncrease:   document.getElementById('statusIncrease').value,
+      attrPointChange:  document.getElementById('attrPointChange').value,
+      skillPointChange: document.getElementById('skillPointChange').value,
+      baseDamageChange: document.getElementById('baseDamageChange').value,
+      attrStr: document.getElementById('attrStr').value,
+      attrAgi: document.getElementById('attrAgi').value,
+      attrWit: document.getElementById('attrWit').value,
+      attrEmp: document.getElementById('attrEmp').value,
+      skills: Object.fromEntries(skillIds.map(id => [id, document.getElementById(id).value])),
+      talents: [...document.querySelectorAll('#talentList .bp-entry')].map(div => ({
+        text: div.querySelector('textarea').value,
+        bp:   div.querySelector('.bp-cost').value
+      }))
+    };
+
+    const name = (document.getElementById('npcName').value.trim() || 'NPC').replace(/[<>:"/\\|?*]+/g,'');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${name}-stat-tracker.json`;
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(url); a.remove();
+  }
+
+  function loadTrackerJSON(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const d = JSON.parse(reader.result);
+
+        if (d.npcName !== undefined)        document.getElementById('npcName').value = d.npcName;
+        if (d.theme !== undefined)          document.getElementById('themeSelect').value = d.theme;
+        if (d.cl !== undefined)             { document.getElementById('clSelect').value = d.cl; }
+        if (d.statusIncrease !== undefined) document.getElementById('statusIncrease').value = d.statusIncrease;
+        if (d.attrPointChange !== undefined) document.getElementById('attrPointChange').value = d.attrPointChange;
+        if (d.skillPointChange !== undefined) document.getElementById('skillPointChange').value = d.skillPointChange;
+        if (d.baseDamageChange !== undefined) document.getElementById('baseDamageChange').value = d.baseDamageChange;
+        if (d.attrStr !== undefined) document.getElementById('attrStr').value = d.attrStr;
+        if (d.attrAgi !== undefined) document.getElementById('attrAgi').value = d.attrAgi;
+        if (d.attrWit !== undefined) document.getElementById('attrWit').value = d.attrWit;
+        if (d.attrEmp !== undefined) document.getElementById('attrEmp').value = d.attrEmp;
+
+        if (d.skills) {
+          Object.entries(d.skills).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+          });
+        }
+
+        // Restore BP features
+        const list = document.getElementById('talentList');
+        list.innerHTML = '';
+        (d.talents || []).forEach(({ text, bp }) => {
+          addTalent();
+          const last = list.querySelector('.bp-entry:last-child');
+          last.querySelector('textarea').value = text || '';
+          last.querySelector('.bp-cost').value = bp || '';
+        });
+
+        // Re-run all calculations
+        handleCLChange();
+        validateAttributeAllocation();
+        validateSkills();
+        recalculateBP();
+
+      } catch(e) {
+        alert('Could not read file. Is it a valid stat tracker JSON?');
+        console.error(e);
+      }
+    };
+    reader.readAsText(file);
   }
 
   window.addEventListener('DOMContentLoaded', () => {
