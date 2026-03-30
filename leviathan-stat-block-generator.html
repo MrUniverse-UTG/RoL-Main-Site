@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Leviathan Stat Block Generator — Realms of Legacy</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Literata:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Site theme ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --void: #04060f; --deep: #080d1c; --mid: #0d1630; --surface: #111b3a;
+      --border: rgba(100,160,255,0.15); --border-gold: rgba(201,168,76,0.25);
+      --cyan: #4fc3f7; --gold: #c9a84c; --gold-pale: #e8d5a3;
+      --text: #c8d8f0; --text-dim: #7a90b8; --white: #eef2ff; --red: #e05555;
+      --font-display: 'Cinzel Decorative', serif;
+      --font-heading: 'Cinzel', serif;
+      --font-body: 'Crimson Pro', serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--void);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 15% 20%, rgba(30,60,160,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 85% 60%, rgba(79,195,247,0.06) 0%, transparent 60%);
+      color: var(--text); font-family: var(--font-body); font-size: 1rem; line-height: 1.6; min-height: 100vh;
+    }
+
+    /* ─── Nav ─── */
+    nav { background: rgba(4,6,15,0.97); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: var(--font-display); font-size: 1rem; color: var(--gold); text-decoration: none; white-space: nowrap; }
+    .nav-links { display: flex; list-style: none; gap: 0.25rem; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-links a { color: var(--text-dim); text-decoration: none; font-family: var(--font-heading); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.65rem; border-radius: 3px; transition: color 0.2s, background 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--cyan); background: rgba(79,195,247,0.07); }
+    .nav-toggle { display: none; background: none; border: 1px solid var(--border); color: var(--cyan); padding: 0.4rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 1.1rem; }
+    @media (max-width: 720px) {
+      .nav-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(4,6,15,0.98); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 2rem; gap: 0; }
+      .nav-links.open { display: flex; }
+      .nav-links a { padding: 0.6rem 0; font-size: 0.85rem; }
+    }
+
+    /* ─── Page header ─── */
+    .page-header { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .page-header .breadcrumb { font-family: var(--font-heading); font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.6rem; }
+    .page-header .breadcrumb a { color: var(--cyan); text-decoration: none; }
+    .page-header h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.2rem); color: var(--white); }
+
+    /* ─── Info banner ─── */
+    .info-banner { max-width: 1200px; margin: 1.5rem auto 0; padding: 0 2rem; }
+    .info-banner .banner-inner { background: rgba(13,22,48,0.85); border: 1px solid var(--border-gold); border-left: 3px solid var(--gold); border-radius: 6px; padding: 1rem 1.5rem; }
+    .info-banner ul { padding-left: 1.25rem; list-style: disc; }
+    .info-banner li { font-size: 0.92rem; color: var(--text-dim); line-height: 1.7; margin-bottom: 0.2rem; }
+    .info-banner strong { color: var(--gold-pale); }
+
+    /* ─── Content wrap ─── */
+    .content-wrap { max-width: 1200px; margin: 1.5rem auto 4rem; padding: 0 2rem; }
+
+    /* ─── Site buttons ─── */
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .btn-site { font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.65rem 1.4rem; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+    .btn-primary-site { background: var(--gold); color: var(--void); border: 1px solid var(--gold); }
+    .btn-primary-site:hover { background: var(--gold-pale); box-shadow: 0 0 20px rgba(201,168,76,0.35); transform: translateY(-1px); }
+    .btn-secondary-site { background: transparent; color: var(--cyan); border: 1px solid rgba(79,195,247,0.4); }
+    .btn-secondary-site:hover { background: rgba(79,195,247,0.08); border-color: var(--cyan); transform: translateY(-1px); }
+    .btn-save { background: rgba(79,195,247,0.08); color: var(--cyan); border: 1px solid rgba(79,195,247,0.3); }
+    .btn-save:hover { background: rgba(79,195,247,0.18); }
+    .btn-load { background: rgba(201,168,76,0.08); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .btn-load:hover { background: rgba(201,168,76,0.18); }
+    .btn-ghost-site { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+    .btn-ghost-site:hover { color: var(--white); border-color: rgba(100,160,255,0.35); }
+
+    /* ─── Form skin ─── */
+    #form {
+      border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+      background: rgba(13,22,48,0.75);
+      display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    .form-group { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: rgba(8,13,28,0.4); }
+    #form label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-family: var(--font-heading); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white);
+    }
+    #form input[type="text"], #form input[type="number"], #form textarea, #form select {
+      font-family: var(--font-body); font-size: 1rem;
+      background: rgba(8,13,28,0.8); border: 1px solid var(--border); border-radius: 4px; color: var(--white); padding: 0.45rem 0.7rem;
+    }
+    #form input:focus, #form textarea:focus, #form select:focus { outline: none; border-color: rgba(79,195,247,0.45); box-shadow: 0 0 0 2px rgba(79,195,247,0.08); }
+    #form input[readonly] { background: rgba(4,6,15,0.6); color: var(--text-dim); cursor: default; border-color: rgba(100,160,255,0.08); }
+    #form input[type="number"] { -moz-appearance: textfield; }
+    #form input[type="number"]::-webkit-outer-spin-button, #form input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    #form select option { background: #0d1630; color: var(--white); }
+    #form textarea { resize: vertical; min-height: 60px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+    #form button {
+      font-family: var(--font-heading); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.4rem 0.9rem; border-radius: 4px; border: 1px solid rgba(100,160,255,0.3);
+      background: rgba(8,13,28,0.6); color: var(--white); cursor: pointer; transition: all 0.2s;
+    }
+    #form button:hover { border-color: rgba(79,195,247,0.5); background: rgba(79,195,247,0.08); }
+    .form-section-label {
+      font-family: var(--font-heading); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--gold-pale); margin-bottom: 8px;
+    }
+
+    /* ─── Rendered stat block styles (original, untouched) ─── */
+    #out { margin-top: 1.5rem; }
+    .statcard {
+      width: 100%; max-width: 8.5in; margin: 0 auto; box-sizing: border-box;
+      background: #fff; border: 2px solid #000; position: relative; padding: 4px;
+      font-family: 'Literata', serif; color: #111;
+    }
+    .statcard::before {
+      content: ""; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+      border: 2px solid #000; box-sizing: border-box; pointer-events: none;
+    }
+    .statpad { padding: 10px; }
+    .hdr { border-bottom: 2px solid #000; padding-bottom: 6px; }
+    .hdr-top { display: flex; justify-content: space-between; align-items: flex-end; font-weight: 700; }
+    .hdr .name { font-size: 20px; }
+    .hdr .right { text-align: right; }
+    .props-row {
+      display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px 8px; margin-top: 8px; font-size: 13px;
+    }
+    @media (max-width: 700px) { .props-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .prop {
+      width: 100%; box-sizing: border-box; border: 1px solid #ddd; padding: 3px 6px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0;
+    }
+    .prop b { white-space: nowrap; margin: 0; }
+    .prop span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .section-title {
+      font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #000;
+      margin: 6px 0 4px; padding-bottom: 2px; letter-spacing: .4px;
+    }
+    .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; align-items: start; }
+    @media (max-width: 900px) { .twocol { grid-template-columns: 1fr; } }
+    .mcols { column-count: 1; }
+    .col-item { break-inside: avoid; -webkit-column-break-inside: avoid; page-break-inside: avoid; display: block; margin: 2px 0 6px 0; }
+    .trait-line { margin: 2px 0; }
+    .trait-line b { margin-right: 6px; }
+    .trait-bullets { margin: 2px 0 4px 16px; padding-left: 16px; }
+    .trait-bullets li { margin: 2px 0; }
+    .action-subtitle { font-weight: 700; margin: 0 0 2px; }
+    .action-desc { margin: 0 0 3px 0; color: #222; }
+    .bullets { margin: 0; padding-left: 16px; }
+    .bullets li { margin: 2px 0; }
+
+    /* Reset site CSS bleedthrough into stat block */
+    .statcard, .statcard * {
+      font-family: 'Literata', Georgia, serif !important;
+      color: #111 !important;
+      text-transform: none !important;
+      letter-spacing: normal !important;
+    }
+    .statcard { background: #fff !important; }
+    .statcard .section-title { text-transform: uppercase !important; letter-spacing: 0.4px !important; font-weight: 700 !important; border-bottom: 2px solid #000 !important; }
+    .statcard b, .statcard strong { font-weight: bold !important; }
+    .statcard .hdr-top { font-weight: 700 !important; }
+    .statcard .hdr-top .name { font-size: 20px !important; }
+    .statcard .action-subtitle { font-weight: 700 !important; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Realms of Legacy</a>
+  <button class="nav-toggle" onclick="this.closest('nav').querySelector('.nav-links').classList.toggle('open')">☰</button>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#about">The Game</a></li>
+    <li><a href="index.html#setting">Setting</a></li>
+    <li><a href="npc-creator.html" class="active">NPC Tools</a></li>
+    <li><a href="bestiary.html">Bestiary</a></li>
+    <li><a href="index.html#get">Get the Game</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="breadcrumb"><a href="npc-creator.html">NPC Creator</a> &rsaquo; Leviathan Stat Block Generator</p>
+  <h1>Leviathan Stat Block Generator</h1>
+</div>
+
+<div class="info-banner">
+  <div class="banner-inner">
+    <ul>
+      <li>Select a <strong>Size</strong> to auto-fill HP, Sorce, Attack Damage, Skill Dice, and Opposing Modifier.</li>
+      <li><strong>Leviathan Might</strong> and <strong>Mythic Creature</strong> traits are added automatically to every stat block.</li>
+      <li>Use <strong>Save JSON</strong> to save your work and <strong>Load JSON</strong> to resume editing later.</li>
+      <li>The JSON saved here is separate from other generator JSON files and is not compatible with them.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <div class="btn-row">
+    <button class="btn-site btn-save" onclick="saveJson()">Save JSON</button>
+    <input id="loader" type="file" accept="application/json" style="display:none" onchange="loadJson(this.files[0]);this.value='';">
+    <button class="btn-site btn-load" onclick="document.getElementById('loader').click()">Load JSON</button>
+  </div>
+
+  <!-- ═══ ORIGINAL FORM — site-skinned ═══ -->
+  <div id="form">
+
+    <!-- Core Stats -->
+    <div class="form-group">
+      <p class="form-section-label">Core Stats</p>
+      <div class="row" style="align-items:flex-end; margin-bottom:8px;">
+        <label style="flex:1">Name<input id="lv_name" type="text"></label>
+      </div>
+      <div class="row" style="margin-bottom:8px;">
+        <label style="flex:0 0 240px">Size
+          <select id="lv_size" onchange="updateFromSize()" oninput="updateFromSize()">
+            <option value="" selected disabled> </option>
+            <option>Small</option>
+            <option>Medium</option>
+            <option>Large</option>
+            <option>Huge</option>
+            <option>Gargantuan</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>HP<input id="lv_hp" type="number" readonly placeholder="Select a Size"></label>
+        <label>Sorce<input id="lv_mpSorce" type="number" readonly placeholder="Select a Size"></label>
+        <label>Attack Damage<input id="lv_power" type="number" readonly placeholder="Select a Size"></label>
+        <label>Skill Dice<input id="lv_skillDice" type="text" readonly placeholder="Select a Size"></label>
+        <label>Opposing Modifier<input id="lv_oppMod" type="text" readonly placeholder="Select a Size"></label>
+      </div>
+    </div>
+
+    <!-- Traits -->
+    <div class="form-group">
+      <p class="form-section-label">Traits</p>
+      <button type="button" onclick="addTraitLine('traitsList')">+ Add Trait</button>
+      <div id="traitsList" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-group">
+      <p class="form-section-label">Action Sections</p>
+      <button type="button" onclick="addActionSection()">+ Add Action Section</button>
+      <div id="actionSections" style="margin-top:8px;"></div>
+    </div>
+
+  </div>
+
+  <!-- Generate / Download outside form -->
+  <div class="btn-row" style="margin-top:1.25rem;">
+    <button class="btn-site btn-primary-site" onclick="render()">Generate Stat Block</button>
+    <button class="btn-site btn-secondary-site" onclick="downloadJPEG()">Download Stat Block</button>
+    <button class="btn-site btn-ghost-site" onclick="clearOutput()">Clear Output</button>
+  </div>
+
+  <div id="out"></div>
+
+</div>
+
+<!-- ═══ ORIGINAL JS — 100% verbatim ═══ -->
+<script>
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstElementChild;}
+function textVal(id){return document.getElementById(id)?.value?.trim()||"";}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+const SIZE_TABLE={
+  Small:     {hp:280,sorce:40, attackDamage:20,skill:"4d8+2d6",oppMod:"-2"},
+  Medium:    {hp:400,sorce:60, attackDamage:30,skill:"5d8+1d6",oppMod:"-2"},
+  Large:     {hp:500,sorce:80, attackDamage:40,skill:"6d8",    oppMod:"-3"},
+  Huge:      {hp:660,sorce:100,attackDamage:50,skill:"7d8",    oppMod:"-3"},
+  Gargantuan:{hp:880,sorce:120,attackDamage:60,skill:"8d8",    oppMod:"-4"}
+};
+
+function updateFromSize(){
+  const size=document.getElementById('lv_size').value||"";
+  const info=SIZE_TABLE[size];
+  document.getElementById('lv_hp').value=info?info.hp:"";
+  document.getElementById('lv_mpSorce').value=info?info.sorce:"";
+  document.getElementById('lv_power').value=info?info.attackDamage:"";
+  document.getElementById('lv_skillDice').value=info?info.skill:"";
+  document.getElementById('lv_oppMod').value=info?info.oppMod:"";
+}
+
+function addTraitLine(containerId,name="",text=""){
+  const row=el(`
+    <div class="lv-trait-entry" style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
+      <div class="row">
+        <label style="flex:0 0 180px">Trait Name<input type="text" class="traitName" value="${escapeHtml(name)}"></label>
+        <label style="flex:1">Description<textarea class="traitText">${escapeHtml(text)}</textarea></label>
+        <button type="button" onclick="this.closest('.lv-trait-entry').remove()">Delete Trait</button>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button type="button" class="addTraitBulletBtn" onclick="addTraitBullet(this)">+ Add Bullet</button>
+      </div>
+      <div class="traitBullets"></div>
+    </div>`);
+  document.getElementById(containerId).appendChild(row);
+}
+function addTraitBullet(btn,text=""){
+  const holder=btn.closest('.lv-trait-entry').querySelector('.traitBullets');
+  const bullet=el(`
+    <div class="row" style="margin-top:6px">
+      <label style="flex:1">Bullet<textarea class="traitBullet">${escapeHtml(text)}</textarea></label>
+      <button type="button" onclick="this.parentElement.remove()">X</button>
+    </div>`);
+  holder.appendChild(bullet);
+}
+
+function addActionSection(title="New Action Section",desc=""){
+  const sec=el(`<div class="lv-action-entry" style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
+    <div class="row" style="align-items:center">
+      <label style="flex:1">Section Title<input type="text" class="actionTitle" value="${escapeHtml(title)}"></label>
+      <button type="button" onclick="addActionRow(this)">+ Add Bullet</button>
+      <button type="button" onclick="this.closest('.lv-action-entry').remove()">Delete Section</button>
+    </div>
+    <label>Description<textarea class="actionDesc">${escapeHtml(desc)}</textarea></label>
+    <div class="rows"></div>
+  </div>`);
+  document.getElementById('actionSections').appendChild(sec);
+  return sec;
+}
+function addActionRow(btnOrSec,bullet=""){
+  const rows=(btnOrSec.classList?btnOrSec.closest('.lv-action-entry').querySelector('.rows'):btnOrSec.querySelector('.rows'));
+  const row=el(`<div class="row" style="margin-top:6px">
+    <label style="flex:1">Bullet/Text<textarea class="actionBullet">${escapeHtml(bullet)}</textarea></label>
+    <button type="button" onclick="this.parentElement.remove()">X</button>
+  </div>`);
+  rows.appendChild(row);
+}
+
+function render(){
+  const name=textVal('lv_name')||"Leviathan";
+  const size=document.getElementById('lv_size').value||"";
+  const hp=textVal('lv_hp'),sorce=textVal('lv_mpSorce'),skill=textVal('lv_skillDice'),oppMod=textVal('lv_oppMod');
+  const tasks="4";
+
+  let traitRows=[...document.querySelectorAll('#traitsList > .lv-trait-entry')].map(g=>{
+    const n=g.querySelector('.traitName')?.value?.trim();
+    const t=g.querySelector('.traitText')?.value?.trim();
+    const bullets=[...g.querySelectorAll('.traitBullet')].map(b=>b.value.trim()).filter(Boolean);
+    if(!n&&!t&&bullets.length===0)return null;
+    return{n,t,bullets};
+  }).filter(Boolean);
+
+  const autoTraits=[
+    {n:"Leviathan Might",t:"This creature Opposes all checks made to Adjust Boost and Shake Off. It is immune to Spells that force movement or inflict conditions. It takes half damage from Spells of rank 5 or lower and is immune to damage from non-siege weapons.",bullets:[]},
+    {n:"Mythic Creature",t:"When this creature takes damage, it may spend 20 Sorce Points to halve the damage taken. On its turn, this creature may spend 10 Sorce Points to gain a fifth task this round.",bullets:[]}
+  ];
+  const traitsAll=[...autoTraits,...traitRows];
+
+  const actions=[...document.querySelectorAll('#actionSections > .lv-action-entry')].map(g=>{
+    const title=g.querySelector('.actionTitle')?.value||'';
+    const desc=g.querySelector('.actionDesc')?.value?.trim()||'';
+    const bullets=[...g.querySelectorAll('.actionBullet')].map(b=>b.value.trim()).filter(Boolean);
+    return{title,desc,bullets};
+  }).filter(a=>a.title||a.desc||(a.bullets&&a.bullets.length));
+
+  const props=[
+    hp?`<div class="prop"><b>HP</b><span>${escapeHtml(hp)}</span></div>`:"",
+    sorce?`<div class="prop"><b>Sorce</b><span>${escapeHtml(sorce)}</span></div>`:"",
+    oppMod?`<div class="prop"><b>Oppose</b><span>${escapeHtml(oppMod)}</span></div>`:"",
+    `<div class="prop"><b>Tasks</b><span>${tasks}</span></div>`,
+    skill?`<div class="prop"><b>Dice</b><span>${escapeHtml(skill)}</span></div>`:"",
+    size?`<div class="prop"><b>Size</b><span>${escapeHtml(size)}</span></div>`:""
+  ].filter(Boolean).join("");
+
+  const traitsHtml=traitsAll.map(({n,t,bullets})=>{
+    let line="";
+    if(n&&t)line=`<div class="trait-line"><b>${escapeHtml(n)}:</b> ${escapeHtml(t)}</div>`;
+    else if(n)line=`<div class="trait-line"><b>${escapeHtml(n)}.</b></div>`;
+    else if(t)line=`<div class="trait-line">${escapeHtml(t)}</div>`;
+    const bl=bullets?.length?`<ul class="trait-bullets">${bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul>`:"";
+    return`<div class="col-item">${line}${bl}</div>`;
+  }).join("");
+
+  const actionsHtml=actions.map(act=>{
+    const desc=act.desc?`<div class="action-desc">${escapeHtml(act.desc)}</div>`:"";
+    const bullets=act.bullets?.length?`<ul class="bullets">${act.bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul>`:"";
+    return`<div class="col-item"><div class="action-subtitle">${escapeHtml(act.title)}</div>${desc}${bullets}</div>`;
+  }).join("");
+
+  const html=`<div id="statcard" class="statcard"><div class="statpad">
+    <div class="hdr">
+      <div class="hdr-top"><div class="name">${escapeHtml(name)}</div><div class="right"></div></div>
+      <div class="props-row">${props}</div>
+    </div>
+    <div class="twocol">
+      <div class="col"><div class="section-title">Leviathan Traits</div><div class="mcols">${traitsHtml||""}</div></div>
+      <div class="col"><div class="section-title">Leviathan Actions</div><div class="mcols">${actionsHtml||""}</div></div>
+    </div>
+  </div></div>`;
+
+  document.getElementById('out').innerHTML=html;
+}
+
+function collectState(){
+  return{
+    fields:{name:textVal('lv_name'),size:document.getElementById('lv_size').value||""},
+    traits:[...document.querySelectorAll('#traitsList > .lv-trait-entry')].map(g=>({
+      name:g.querySelector('.traitName')?.value||'',
+      text:g.querySelector('.traitText')?.value||'',
+      bullets:[...g.querySelectorAll('.traitBullet')].map(b=>b.value||'')
+    })),
+    actions:[...document.querySelectorAll('#actionSections > .lv-action-entry')].map(g=>({
+      title:g.querySelector('.actionTitle')?.value||'',
+      desc:g.querySelector('.actionDesc')?.value||'',
+      bullets:[...g.querySelectorAll('.actionBullet')].map(t=>t.value||'')
+    }))
+  };
+}
+
+function restoreState(data){
+  if(!data)return;
+  const f=data.fields||{};
+  document.getElementById('lv_name').value=f.name||'';
+  document.getElementById('lv_size').value=f.size||'';
+  updateFromSize();
+  document.getElementById('traitsList').innerHTML='';
+  (data.traits||[]).forEach(t=>{
+    addTraitLine('traitsList',t.name||'',t.text||'');
+    const last=document.querySelector('#traitsList > .lv-trait-entry:last-child');
+    (t.bullets||[]).forEach(b=>{
+      const btn=last.querySelector('.addTraitBulletBtn');
+      addTraitBullet(btn,b);
+    });
+  });
+  document.getElementById('actionSections').innerHTML='';
+  (data.actions||[]).forEach(a=>{
+    const sec=addActionSection(a.title||'',a.desc||'');
+    (a.bullets||[]).forEach(b=>addActionRow(sec,b));
+  });
+}
+
+function saveJson(){
+  const blob=new Blob([JSON.stringify(collectState(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const base=textVal('lv_name')||'Leviathan';
+  a.download=`${base}-leviathan.json`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+}
+function loadJson(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{try{restoreState(JSON.parse(r.result));}catch(e){alert('Invalid .json');}};
+  r.readAsText(file);
+}
+function downloadJPEG(){
+  const node=document.getElementById('statcard');
+  if(!node){alert('Generate the stat block first.');return;}
+  html2canvas(node,{backgroundColor:'#ffffff',scale:2}).then(canvas=>{
+    const a=document.createElement('a');
+    const base=textVal('lv_name')||'Leviathan';
+    a.download=`${base} Leviathan Stat Block.jpg`;
+    a.href=canvas.toDataURL('image/jpeg',0.95);
+    a.click();
+  });
+}
+function clearOutput(){document.getElementById('out').innerHTML='';}
+
+updateFromSize();
+</script>
+</body>
+</html>
