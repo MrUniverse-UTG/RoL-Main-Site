@@ -436,43 +436,60 @@
       padding: 0 2rem;
     }
     #summaryBox {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 2rem;
+      background: #fff;
+      border: 2px solid #000;
+      position: relative;
+      padding: 4px;
       max-width: 640px;
       margin: 0 auto;
+      font-family: 'Literata', Georgia, serif;
+      color: #111;
+    }
+    #summaryBox::before {
+      content: '';
+      position: absolute;
+      top: 4px; left: 4px; right: 4px; bottom: 4px;
+      border: 2px solid #000;
+      pointer-events: none;
+      box-sizing: border-box;
     }
     #summaryBox h2 {
-      font-family: var(--font-display);
+      font-family: 'Literata', Georgia, serif;
       font-size: 1.4rem;
-      color: var(--white);
-      margin-bottom: 0.25rem;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 0.15rem;
     }
     #summaryBox h3 {
-      font-family: var(--font-heading);
-      font-size: 0.8rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 1rem;
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      font-style: italic;
+      color: #444;
+      margin-bottom: 0.75rem;
+      text-transform: none;
+      letter-spacing: normal;
     }
     #summaryBox h4 {
-      font-family: var(--font-heading);
-      font-size: 0.7rem;
-      letter-spacing: 0.2em;
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.9rem;
+      font-weight: 700;
       text-transform: uppercase;
-      color: var(--gold);
-      margin: 1rem 0 0.4rem;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid var(--border-gold);
+      letter-spacing: 0.5px;
+      color: #222;
+      margin: 0.75rem 0 0.3rem;
+      padding-bottom: 2px;
+      border-bottom: 2px solid #000;
     }
     #summaryBox p {
-      font-size: 0.95rem;
-      color: var(--text);
+      font-family: 'Literata', Georgia, serif;
+      font-size: 0.92rem;
+      color: #111;
       line-height: 1.6;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.15rem;
     }
+    /* inner padding wrapper */
+    #summaryBox > * { position: relative; }
     #summaryCanvas { display: none; }
   </style>
 </head>
@@ -982,9 +999,16 @@
 
     const preview = document.getElementById('summaryPreview');
     preview.innerHTML = '';
+
+    // Wrap content in inner padded div so it sits inside the double border
+    const inner = document.createElement('div');
+    inner.style.cssText = 'padding: 14px 16px;';
+    while (box.firstChild) inner.appendChild(box.firstChild);
+    box.appendChild(inner);
+
     preview.appendChild(box);
 
-    html2canvas(box, { backgroundColor: '#111b3a', scale: 2 }).then(canvas => {
+    html2canvas(box, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
       summaryImageData = canvas.toDataURL('image/png');
     });
   }
