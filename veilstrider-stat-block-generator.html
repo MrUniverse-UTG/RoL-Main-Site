@@ -421,11 +421,11 @@ function toggleEliteNote(){
 
 function addTraitLine(containerId,name="",text=""){
   const row=el(`
-    <div style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
+    <div class="vs-trait-entry" style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
       <div class="row">
         <label style="flex:0 0 180px">Trait Name<input type="text" class="traitName" value="${escapeHtml(name)}"></label>
         <label style="flex:1">Description<textarea class="traitText">${escapeHtml(text)}</textarea></label>
-        <button type="button" onclick="this.closest('div[style]').remove()">Delete</button>
+        <button type="button" onclick="this.closest('.vs-trait-entry').remove()">Delete</button>
       </div>
       <div class="row" style="margin-top:6px">
         <button type="button" class="addTraitBulletBtn" onclick="addTraitBullet(this)">+ Add Bullet</button>
@@ -435,7 +435,7 @@ function addTraitLine(containerId,name="",text=""){
   document.getElementById(containerId).appendChild(row);
 }
 function addTraitBullet(btn,text=""){
-  const holder=btn.closest('div[style]').querySelector('.traitBullets');
+  const holder=btn.closest('.vs-trait-entry').querySelector('.traitBullets');
   const bullet=el(`
     <div class="row" style="margin-top:6px">
       <label style="flex:1">Bullet<textarea class="traitBullet">${escapeHtml(text)}</textarea></label>
@@ -445,11 +445,11 @@ function addTraitBullet(btn,text=""){
 }
 
 function addTaskSection(title="New Task Section",desc=""){
-  const sec=el(`<div style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
+  const sec=el(`<div class="vs-task-entry" style="border:1px solid rgba(100,160,255,0.12);border-radius:5px;padding:8px;margin-top:8px;">
     <div class="row" style="align-items:center">
       <label style="flex:1">Section Title<input type="text" class="taskTitle" value="${escapeHtml(title)}"></label>
       <button type="button" onclick="addTaskRow(this)">+ Add Bullet</button>
-      <button type="button" onclick="this.closest('div[style]').remove()">Delete</button>
+      <button type="button" onclick="this.closest('.vs-task-entry').remove()">Delete</button>
     </div>
     <label>Description<textarea class="taskDesc">${escapeHtml(desc)}</textarea></label>
     <div class="rows"></div>
@@ -458,7 +458,7 @@ function addTaskSection(title="New Task Section",desc=""){
   return sec;
 }
 function addTaskRow(btnOrSec,bullet=""){
-  const rows=(btnOrSec.classList?btnOrSec.closest('div[style]').querySelector('.rows'):btnOrSec.querySelector('.rows'));
+  const rows=(btnOrSec.classList?btnOrSec.closest('.vs-task-entry').querySelector('.rows'):btnOrSec.querySelector('.rows'));
   const row=el(`<div class="row" style="margin-top:6px">
     <label style="flex:1">Bullet/Text<textarea class="taskBullet">${escapeHtml(bullet)}</textarea></label>
     <button type="button" onclick="this.parentElement.remove()">X</button>
@@ -477,7 +477,7 @@ function render(){
   const shipChecks=computeChecks(tier,elite);
   const weaponsInstalled=textVal('vs_weaponsInstalled');
 
-  let traitRows=[...document.querySelectorAll('#traitsList > div')].map(g=>{
+  let traitRows=[...document.querySelectorAll('#traitsList > .vs-trait-entry')].map(g=>{
     const n=g.querySelector('.traitName')?.value?.trim();
     const t=g.querySelector('.traitText')?.value?.trim();
     const bullets=[...g.querySelectorAll('.traitBullet')].map(b=>b.value.trim()).filter(Boolean);
@@ -495,7 +495,7 @@ function render(){
 
   const hasTraits=traitRows.length>0;
 
-  const sections=[...document.querySelectorAll('#taskSections > div')].map(g=>{
+  const sections=[...document.querySelectorAll('#taskSections > .vs-task-entry')].map(g=>{
     const title=g.querySelector('.taskTitle')?.value||'';
     const desc=g.querySelector('.taskDesc')?.value?.trim()||'';
     const bullets=[...g.querySelectorAll('.taskBullet')].map(b=>b.value.trim()).filter(Boolean);
@@ -561,12 +561,12 @@ function collectState(){
       armorAdded:String(clampNonNegative(numVal('vs_armorAdded'))),
       weaponsInstalled:textVal('vs_weaponsInstalled')
     },
-    traits:[...document.querySelectorAll('#traitsList > div')].map(g=>({
+    traits:[...document.querySelectorAll('#traitsList > .vs-trait-entry')].map(g=>({
       name:g.querySelector('.traitName')?.value||'',
       text:g.querySelector('.traitText')?.value||'',
       bullets:[...g.querySelectorAll('.traitBullet')].map(b=>b.value||'')
     })),
-    tasks:[...document.querySelectorAll('#taskSections > div')].map(g=>({
+    tasks:[...document.querySelectorAll('#taskSections > .vs-task-entry')].map(g=>({
       title:g.querySelector('.taskTitle')?.value||'',
       desc:g.querySelector('.taskDesc')?.value||'',
       bullets:[...g.querySelectorAll('.taskBullet')].map(t=>t.value||'')
