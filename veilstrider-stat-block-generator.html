@@ -268,9 +268,7 @@
 <div class="content-wrap">
 
   <div class="btn-row">
-    <button class="btn-site btn-save" onclick="saveJson()">Save JSON</button>
     <input id="loader" type="file" accept="application/json" style="display:none" onchange="loadJson(this.files[0]);this.value='';">
-    <button class="btn-site btn-load" onclick="document.getElementById('loader').click()">Load JSON</button>
   </div>
 
   <!-- ═══ ORIGINAL FORM — site-skinned via CSS above ═══ -->
@@ -346,6 +344,8 @@
   <div class="btn-row" style="margin-top:1.25rem;">
     <button class="btn-site btn-primary-site" onclick="render()">Generate Stat Block</button>
     <button class="btn-site btn-secondary-site" onclick="downloadJPEG()">Download Stat Block</button>
+    <button class="btn-site btn-save" onclick="saveJson()">Save JSON</button>
+    <button class="btn-site btn-load" onclick="document.getElementById('loader').click()">Load JSON</button>
     <button class="btn-site btn-ghost-site" onclick="clearOutput()">Clear Output</button>
   </div>
 
