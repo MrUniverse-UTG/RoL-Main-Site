@@ -379,13 +379,6 @@
 <!-- Content -->
 <div class="content-wrap">
 
-  <!-- Save / Load -->
-  <div class="btn-row">
-    <button class="btn-site btn-save" onclick="saveStatJSON()">Save JSON</button>
-    <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
-    <button class="btn-site btn-load" onclick="document.getElementById('statJsonFile').click()">Load JSON</button>
-  </div>
-
   <!-- ═══ ORIGINAL FORM — completely unchanged ═══ -->
   <div id="statBlockForm">
     <h2 style="grid-column: 1 / -1;">Creature Stat Block Generator</h2>
@@ -496,9 +489,10 @@
 
     <div style="grid-column: 1 / -1;">
       <div style="margin-bottom:8px;">
-        <button type="button" onclick="saveStatJSON()">Save .json</button>
-        <input type="file" id="statJsonFile2" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
-        <button type="button" onclick="document.getElementById('statJsonFile2').click()">Load .json</button>
+      <button type="button" onclick="saveStatJSON()">Save .json</button>
+      <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
+      <input type="file" id="statJsonFile2" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
+      <button type="button" onclick="document.getElementById('statJsonFile2').click()">Load .json</button>
       </div>
       <button onclick="renderStatBlock()">Generate Stat Block</button>
       <button onclick="downloadImage()">Download Stat Block</button>
