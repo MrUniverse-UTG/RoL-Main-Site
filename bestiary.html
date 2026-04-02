@@ -537,7 +537,21 @@
       }
     });
   })();
-</script>
+
+    // ─── Online Tools dropdown ───
+    function toggleDropdown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = e.currentTarget.closest('.nav-dropdown');
+      li.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+  </script>
 
 </body>
 </html>
