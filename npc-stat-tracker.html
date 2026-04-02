@@ -59,7 +59,7 @@
       gap: 1rem;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 300;
     }
     .nav-logo {
       font-family: var(--font-display);
@@ -493,6 +493,7 @@
     #summaryCanvas { display: none; }
   
     /* ─── Online Tools dropdown ─── */
+    nav { overflow: visible !important; }
     .nav-dropdown { position: relative; }
     .nav-dropdown-toggle { cursor: pointer; }
     .nav-dropdown-menu {
@@ -508,7 +509,7 @@
       padding: 0.4rem 0;
       min-width: 180px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-      z-index: 200;
+      z-index: 9999;
       backdrop-filter: blur(12px);
     }
     .nav-dropdown.open .nav-dropdown-menu { display: block; }
@@ -1155,6 +1156,20 @@
     document.getElementById('themeSelect').value = 'Brute';
     handleCLChange();
   });
-</script>
+
+    // ─── Online Tools dropdown ───
+    function toggleDropdown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = e.currentTarget.closest('.nav-dropdown');
+      li.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+  </script>
 </body>
 </html>
