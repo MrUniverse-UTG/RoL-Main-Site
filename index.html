@@ -353,11 +353,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: visible;
     }
     #solar-system {
       display: block;
-      width: 400px;
-      height: 400px;
+      width: 440px;
+      height: 440px;
     }
     @media (max-width: 860px) {
       #about .container { grid-template-columns: 1fr; gap: 3rem; }
@@ -930,7 +931,7 @@
         </div>
       </div>
       <div class="about-visual" aria-hidden="true">
-        <canvas id="solar-system" width="400" height="400"></canvas>
+        <canvas id="solar-system" width="440" height="440"></canvas>
       </div>
     </div>
   </section>
@@ -1517,6 +1518,20 @@
       document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
       if (!wasOpen) item.classList.add('open');
     }
+  
+    // ─── Online Tools dropdown ───
+    function toggleDropdown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = e.currentTarget.closest('.nav-dropdown');
+      li.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+
   </script>
 </body>
 </html>
