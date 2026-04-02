@@ -46,8 +46,9 @@
 
     /* ─── Nav ─── */
     nav {
-      position: relative;
-      z-index: 10;
+      position: sticky;
+      top: 0;
+      z-index: 300;
       background: rgba(4,6,15,0.97);
       border-bottom: 1px solid var(--border);
       backdrop-filter: blur(12px);
@@ -338,6 +339,7 @@
     #renderedOutput .section-title { font-weight: 700 !important; font-size: 1.1em !important; color: #222 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; margin: 6px 0 4px !important; border-bottom: 2px solid #000 !important; padding-bottom: 2px !important; display: block !important; }
   
     /* ─── Online Tools dropdown ─── */
+    nav { overflow: visible !important; }
     .nav-dropdown { position: relative; }
     .nav-dropdown-toggle { cursor: pointer; }
     .nav-dropdown-menu {
@@ -353,7 +355,7 @@
       padding: 0.4rem 0;
       min-width: 180px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-      z-index: 200;
+      z-index: 9999;
       backdrop-filter: blur(12px);
     }
     .nav-dropdown.open .nav-dropdown-menu { display: block; }
@@ -1255,7 +1257,21 @@ window.onload = initSkills;
   window.addEventListener('resize', () => { resize(); init(); });
   resize(); init(); requestAnimationFrame(draw);
 })();
-</script>
+
+    // ─── Online Tools dropdown ───
+    function toggleDropdown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = e.currentTarget.closest('.nav-dropdown');
+      li.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+  </script>
 
 </body>
 </html>
