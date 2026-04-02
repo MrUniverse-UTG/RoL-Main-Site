@@ -801,6 +801,42 @@
       text-transform: uppercase;
       color: var(--gold);
     }
+  
+    /* ─── Online Tools dropdown ─── */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-toggle { cursor: pointer; }
+    .nav-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(4,6,15,0.98);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      list-style: none;
+      padding: 0.4rem 0;
+      min-width: 180px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      z-index: 200;
+      backdrop-filter: blur(12px);
+    }
+    .nav-dropdown.open .nav-dropdown-menu { display: block; }
+    .nav-dropdown-menu li a {
+      display: block;
+      padding: 0.5rem 1rem;
+      font-family: var(--font-heading);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-dropdown-menu li a:hover { color: var(--cyan); background: rgba(79,195,247,0.07); }
+    .nav-dropdown-menu li:not(:last-child) { border-bottom: 1px solid var(--border); }
+
   </style>
 </head>
 <body>
@@ -824,9 +860,15 @@
         <li><a href="#setting">Setting</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#team">Team</a></li>
-        <li><a href="https://spellbook.realmsoflegacy.com/" target="_blank">Spellbook</a></li>
-        <li><a href="npc-creator.html">NPC Tools</a></li>
-        <li><a href="bestiary.html">Bestiary</a></li>
+        <li class="nav-dropdown">
+          <a href="#" class="nav-dropdown-toggle" onclick="toggleDropdown(event)">Online Tools ▾</a>
+          <ul class="nav-dropdown-menu">
+            <li><a href="https://playercharactercreator.realmsoflegacy.com/" target="_blank">Character Builder</a></li>
+            <li><a href="https://spellbook.realmsoflegacy.com/" target="_blank">Spellbook</a></li>
+            <li><a href="npc-creator.html">NPC Tools</a></li>
+            <li><a href="bestiary.html">Bestiary</a></li>
+          </ul>
+        </li>
         <li class="nav-cta"><a href="https://mr-universe-utg.itch.io/realms-of-legacy" target="_blank">Get the Game</a></li>
       </ul>
     </div>
@@ -869,11 +911,12 @@
         <div class="section-divider reveal"></div>
         <p class="section-body reveal">
           Realms of Legacy (RoL) is a space fantasy role-playing game for a group of 4–6 friends. One player takes the
-          role of Game Master; the others build unique Characters and dive headfirst into the Veil.
+          role of Game Master; the others build unique Player Characters and dive headfirst into the Veil.
         </p>
         <p class="section-body reveal" style="margin-top:1rem;">
           It's a <strong style="color:var(--white)">build-a-class</strong> system with deep customization.
-          Start with a base Class and Specialty, then stack talents and skills to make your character unique.
+          Start with a base Class and Specialty, then stack talents and skills to make your character truly unique.
+          No two Guardians play the same.
         </p>
         <div class="about-stat-grid reveal">
           <div class="stat-card">
@@ -962,23 +1005,23 @@
             domestic plutheryte extraction.
           </p>
           <p>
-            Now plutheryte is the most coveted resource in the system, and in response <span class="keyword">Veildivers</span>
-            were created: adventurers who brave other realms witthin the Veil for artifacts, ore, rare goods, and plutheryte. Some push even
-            further, into the mysterious <span class="keyword">Outerveil</span>, beyond the solar system's very borders.
+            Now plutheryte is the most coveted resource in the system, and the <span class="keyword">Veildivers</span>
+            were born: adventurers who brave the Veil for artifacts, ore, and rare goods. Some push even
+            further, into the mysterious <span class="keyword">Outerveil</span>, beyond the system's very borders.
           </p>
           <p>
-            But the Veil is no safe road. Marauders, blood-thirsty <span class="keyword">demons</span>, corrupting
-            <span class="keyword">virophage</span>, and the ever-present threat of the <span class="keyword">Void</span>
+            But the Veil is no safe road. Veilfaring marauders, blood-thirsty demons, corrupting
+            <span class="keyword">virophage</span>, and the ever-present <span class="keyword">Void</span>
             wait for those who stray too far.
           </p>
         </div>
         <div class="setting-inspirations reveal">
           <div class="lore-card insp-card">
-            <p class="lore-card-title">Game Inspirations:</p>
+            <p class="lore-card-title">Inspirations: Games</p>
             <p>Pathfinder 2e · Forbidden Lands · Blades in the Dark · Guns of Icarus · Barotrauma</p>
           </div>
           <div class="lore-card insp-card">
-            <p class="lore-card-title">Theme Inspirations:</p>
+            <p class="lore-card-title">Inspirations: Themes</p>
             <p>Treasure Planet · Spelljammer · Larklight · Aeronaut's Windlass · The Olympian Affair</p>
           </div>
         </div>
@@ -1046,9 +1089,10 @@
           <li>All core rules and player options included at no charge</li>
           <li>Character Creator tool available online</li>
           <li>Spellbook reference tool available online</li>
-          <li>NPC Stat Block generators for GMs online</li>
+          <li>NPC Stat Block generators for GMs</li>
           <li>Discord server for direct feedback and early previews</li>
           <li>Full game + GM Compendium planned for release after playtest</li>
+          <li>Physical print-on-demand version planned via DriveThruRPG</li>
         </ul>
       </div>
     </div>
@@ -1125,7 +1169,6 @@
           <a href="https://www.fiverr.com/gafree_" target="_blank">🖌 Gafree, Artist</a>
           <a href="https://www.fiverr.com/bluidu" target="_blank">🖌 Lena Gerner, Artist</a>
           <a href="https://k0r1.crd.co/" target="_blank">🖌 k0r1, Artist</a>
-          <a href="https://www.artstation.com/tipovangog" target="_blank">🖌 Aidar Kumushbekov, Artist</a>
           <a href="https://www.fiverr.com/s/jw4gVo" target="_blank">🗺 Arturo G. Martinez, Cartographer</a>
           <a href="https://purasoza.com/" target="_blank">🎨 Samuel Soza, Graphic Design</a>
           <a href="https://www.fiverr.com/lesmarc_art" target="_blank">🎨 Marcos Lescano, Graphic Design</a>
