@@ -30,7 +30,7 @@
     }
 
     /* ─── Nav ─── */
-    nav { background: rgba(4,6,15,0.97); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+    nav { background: rgba(4,6,15,0.97); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; position: sticky; top: 0; z-index: 300; }
     .nav-logo { font-family: var(--font-display); font-size: 1rem; color: var(--gold); text-decoration: none; white-space: nowrap; }
     .nav-links { display: flex; list-style: none; gap: 0.25rem; flex-wrap: wrap; justify-content: flex-end; }
     .nav-links a { color: var(--text-dim); text-decoration: none; font-family: var(--font-heading); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.65rem; border-radius: 3px; transition: color 0.2s, background 0.2s; }
@@ -165,6 +165,7 @@
     .statcard .action-subtitle { font-weight: 700 !important; }
   
     /* ─── Online Tools dropdown ─── */
+    nav { overflow: visible !important; }
     .nav-dropdown { position: relative; }
     .nav-dropdown-toggle { cursor: pointer; }
     .nav-dropdown-menu {
@@ -180,7 +181,7 @@
       padding: 0.4rem 0;
       min-width: 180px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-      z-index: 200;
+      z-index: 9999;
       backdrop-filter: blur(12px);
     }
     .nav-dropdown.open .nav-dropdown-menu { display: block; }
@@ -506,6 +507,20 @@ function downloadJPEG(){
 function clearOutput(){document.getElementById('out').innerHTML='';}
 
 updateFromSize();
-</script>
+
+    // ─── Online Tools dropdown ───
+    function toggleDropdown(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const li = e.currentTarget.closest('.nav-dropdown');
+      li.classList.toggle('open');
+    }
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown.open').forEach(d => d.classList.remove('open'));
+      }
+    });
+
+  </script>
 </body>
 </html>
