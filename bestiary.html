@@ -99,7 +99,7 @@
       background: rgba(13,22,48,0.75);
       border: 1px solid var(--border);
       border-radius: 8px;
-      overflow: hidden;
+      overflow: visible;
     }
 
     table#creatureTable thead tr th {
@@ -308,6 +308,7 @@
 
     /* Responsive table scroll */
     #creatureTableWrapper { overflow-x: auto; }
+    .dataTables_wrapper { min-height: 320px; }
   
     /* ─── Online Tools dropdown ─── */
     .nav-dropdown { position: relative; }
