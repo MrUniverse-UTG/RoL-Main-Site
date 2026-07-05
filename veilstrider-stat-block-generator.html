@@ -573,6 +573,12 @@ function render(){
     return`<div class="col-item"><div class="task-subtitle">${escapeHtml(sec.title)}</div>${desc}${bullets}</div>`;
   }).join('');
 
+  // Build one continuous flow of blocks (section titles + items), then
+  // balance them across two columns by measured height so neither column
+  // ends with a large run of empty space.
+  const flowHtml=(hasTraits?`<div class="section-title">Traits</div>${traitsHtml}`:"")
+    +`<div class="section-title">Veilstrider Tasks</div>${tasksHtml}`;
+
   const html=`<div id="statcard" class="statcard"><div class="statpad">
     <div class="hdr">
       <div class="hdr-top">
@@ -583,15 +589,48 @@ function render(){
       ${weaponsLine}
     </div>
     <div class="twocol">
-      ${hasTraits
-        ?`<div class="col"><div class="section-title">Traits</div><div class="mcols">${traitsHtml}</div></div>
-           <div class="col"><div class="section-title">Veilstrider Tasks</div><div class="mcols">${tasksHtml}</div></div>`
-        :`<div class="col col-span-2"><div class="section-title">Veilstrider Tasks</div><div class="mcols">${tasksHtml}</div></div>`
-      }
+      <div class="col" id="vsColA">${flowHtml}</div>
+      <div class="col" id="vsColB"></div>
     </div>
   </div></div>`;
 
   document.getElementById('out').innerHTML=html;
+  balanceStatColumns();
+}
+
+function blockOuterHeight(el){
+  const cs=getComputedStyle(el);
+  return el.getBoundingClientRect().height
+    +(parseFloat(cs.marginTop)||0)
+    +(parseFloat(cs.marginBottom)||0);
+}
+
+function balanceStatColumns(){
+  const colA=document.getElementById('vsColA');
+  const colB=document.getElementById('vsColB');
+  if(!colA||!colB)return;
+  const blocks=[...colA.children];
+  if(blocks.length<3){colB.remove();colA.classList.add('col-span-2');return;}
+
+  const heights=blocks.map(blockOuterHeight);
+  const total=heights.reduce((a,b)=>a+b,0);
+
+  // Find the split index that makes the two column heights as equal as possible.
+  let best=blocks.length,bestDiff=Infinity,run=0;
+  for(let i=1;i<blocks.length;i++){
+    run+=heights[i-1];
+    const diff=Math.abs(run-(total-run));
+    if(diff<bestDiff){bestDiff=diff;best=i;}
+  }
+
+  // Never strand a section title at the bottom of column A —
+  // push it to the top of column B instead.
+  while(best>1&&blocks[best-1].classList.contains('section-title'))best--;
+
+  // If the balanced split puts everything in one column, don't split at all.
+  if(best>=blocks.length){colB.remove();colA.classList.add('col-span-2');return;}
+
+  for(let i=best;i<blocks.length;i++)colB.appendChild(blocks[i]);
 }
 
 function collectState(){
