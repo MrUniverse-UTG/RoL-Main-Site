@@ -140,6 +140,7 @@
     .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; align-items: start; }
     @media (max-width: 900px) { .twocol { grid-template-columns: 1fr; } }
     .mcols { column-count: 1; }
+    .col-span-2 { grid-column: 1 / -1; }
     .col-item { break-inside: avoid; -webkit-column-break-inside: avoid; page-break-inside: avoid; display: block; margin: 2px 0 6px 0; }
     .trait-line { margin: 2px 0; }
     .trait-line b { margin-right: 6px; }
@@ -427,18 +428,59 @@ function render(){
     return`<div class="col-item"><div class="action-subtitle">${escapeHtml(act.title)}</div>${desc}${bullets}</div>`;
   }).join("");
 
+  // One continuous flow of blocks: traits section then actions section.
+  // balanceStatColumns() splits it across two columns by measured height.
+  const flowHtml=(traitsHtml?`<div class="section-title">Leviathan Traits</div>${traitsHtml}`:"")
+    +(actionsHtml?`<div class="section-title">Leviathan Actions</div>${actionsHtml}`:"");
+
   const html=`<div id="statcard" class="statcard"><div class="statpad">
     <div class="hdr">
       <div class="hdr-top"><div class="name">${escapeHtml(name)}</div><div class="right"></div></div>
       <div class="props-row">${props}</div>
     </div>
     <div class="twocol">
-      <div class="col"><div class="section-title">Leviathan Traits</div><div class="mcols">${traitsHtml||""}</div></div>
-      <div class="col"><div class="section-title">Leviathan Actions</div><div class="mcols">${actionsHtml||""}</div></div>
+      <div class="col" id="lvColA">${flowHtml}</div>
+      <div class="col" id="lvColB"></div>
     </div>
   </div></div>`;
 
   document.getElementById('out').innerHTML=html;
+  balanceStatColumns();
+}
+
+function blockOuterHeight(el){
+  const cs=getComputedStyle(el);
+  return el.getBoundingClientRect().height
+    +(parseFloat(cs.marginTop)||0)
+    +(parseFloat(cs.marginBottom)||0);
+}
+
+function balanceStatColumns(){
+  const colA=document.getElementById('lvColA');
+  const colB=document.getElementById('lvColB');
+  if(!colA||!colB)return;
+  const blocks=[...colA.children];
+  if(blocks.length<3){colB.remove();colA.classList.add('col-span-2');return;}
+
+  const heights=blocks.map(blockOuterHeight);
+  const total=heights.reduce((a,b)=>a+b,0);
+
+  // Find the split index that makes the two column heights as equal as possible.
+  let best=blocks.length,bestDiff=Infinity,run=0;
+  for(let i=1;i<blocks.length;i++){
+    run+=heights[i-1];
+    const diff=Math.abs(run-(total-run));
+    if(diff<bestDiff){bestDiff=diff;best=i;}
+  }
+
+  // Never strand a section title at the bottom of column A —
+  // push it to the top of column B instead.
+  while(best>1&&blocks[best-1].classList.contains('section-title'))best--;
+
+  // If the balanced split puts everything in one column, don't split at all.
+  if(best>=blocks.length){colB.remove();colA.classList.add('col-span-2');return;}
+
+  for(let i=best;i<blocks.length;i++)colB.appendChild(blocks[i]);
 }
 
 function collectState(){
