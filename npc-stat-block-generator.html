@@ -280,12 +280,19 @@
       margin: 8px 0;
       grid-column: 1 / -1;
     }
-    @media (min-width: 900px) {
-      #renderedOutput > div {
-        column-count: 2;
-        column-gap: 24px;
-      }
+    /* Two-column body of the stat block. Split is done in JS by measured
+       height (see balanceStatColumns) rather than CSS column-count, because
+       html2canvas does not lay out CSS multi-column correctly on export. */
+    .sb-twocol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 24px;
+      align-items: start;
     }
+    @media (max-width: 900px) {
+      .sb-twocol { grid-template-columns: 1fr; }
+    }
+    .sb-col-span-2 { grid-column: 1 / -1; }
 
     /* ─── Rendered output classes (used inside #renderedOutput, must stay light) ─── */
     .no-break,
@@ -670,45 +677,46 @@ function toggleSaveReq(checkbox) {
 function spellcastingHTML() {
   if (!document.getElementById("spellToggle").checked) return "";
 
-  let inner = `<div class='no-break'><div class="section-title">Spells Prepared:</div>`;
-
+  let checkLines = "";
   const checks = document.querySelectorAll("#spellChecksList > div");
   checks.forEach(div => {
     const source = div.querySelector(".spellSource")?.value || "";
     const inset = div.querySelector(".spellInset")?.value || "";
     const study = div.querySelector(".studyOf")?.value || "";
     if (source === "Study of") {
-      inner += `Spell Check (Study of): ${study} ${inset}<br>`;
+      checkLines += `<div class="no-break">Spell Check (Study of): ${study} ${inset}</div>`;
     } else {
-      inner += `Spell Check (Innate): ${inset}<br>`;
+      checkLines += `<div class="no-break">Spell Check (Innate): ${inset}</div>`;
     }
   });
 
+  let spellLines = "";
   const spells = [...document.querySelectorAll("#spellsList > div")];
   spells.forEach(sp => {
     const rank = sp.querySelector(".spellRank")?.value || "";
     const name = sp.querySelector(".spellName")?.value || "";
-    if (rank || name) inner += `Rank ${rank}: ${name}<br>`;
+    if (rank || name) spellLines += `<div class="no-break">Rank ${rank}: ${name}</div>`;
   });
 
-  return `<div class="section-group">${inner}</div>`;
+  if (!checkLines && !spellLines) return "";
+  return `<div class="section-title">Spells Prepared:</div>${checkLines}${spellLines}`;
 }
 
 function standardActionsHTML() {
-  let inner = `<div class="section-title">Standard Actions:</div>`;
+  let inner = "";
 
   document.querySelectorAll("#standard > div").forEach(container => {
-    inner += `<div class="no-break">`;
+    let block = "";
     if (container.querySelector(".atkName")) {
       const name = container.querySelector(".atkName").value;
       const feat = container.querySelector(".atkFeat").value;
       const hit = container.querySelector(".atkHit").value;
       const dmg = container.querySelector(".atkDmg").value;
       const eff = container.querySelector(".atkEff").value;
-      inner += `<b>${name}</b>: <i>${feat}</i><br>`;
-      if (hit) inner += `To Hit: ${hit}<br>`;
-      if (dmg) inner += `Damage: ${dmg}<br>`;
-      if (eff) inner += `Effect: ${eff}<br>`;
+      block += `<b>${name}</b>: <i>${feat}</i><br>`;
+      if (hit) block += `To Hit: ${hit}<br>`;
+      if (dmg) block += `Damage: ${dmg}<br>`;
+      if (eff) block += `Effect: ${eff}<br>`;
     } else if (container.querySelector(".abilName")) {
       const name = container.querySelector(".abilName").value;
       const eff = container.querySelector(".abilEff").value;
@@ -716,19 +724,20 @@ function standardActionsHTML() {
       const saveText = container.querySelector(".saveReqText")?.value || "";
       const chargeReqBox = container.querySelector(".hasChargeReq");
       const chargeText = container.querySelector(".chargeReqText")?.value || "";
-      inner += `<b>${name}</b>: ${eff}<br>`;
+      block += `<b>${name}</b>: ${eff}<br>`;
       if (saveReqBox?.checked && saveText) {
-        inner += `<i>Skill Save:</i> ${saveText}<br>`;
+        block += `<i>Skill Save:</i> ${saveText}<br>`;
       }
       if (chargeReqBox?.checked && chargeText) {
-        inner += `<i>Charging Requirement:</i> ${chargeText}<br>`;
+        block += `<i>Charging Requirement:</i> ${chargeText}<br>`;
       }
-      inner += `<i>This ability must be CHARGED to use.</i><br>`;
+      block += `<i>This ability must be CHARGED to use.</i><br>`;
     }
-    inner += `</div>`;
+    if (block) inner += `<div class="no-break">${block}</div>`;
   });
 
-  return `<div class="section-group">${inner}</div>`;
+  if (!inner) return "";
+  return `<div class="section-title">Standard Actions:</div>${inner}`;
 }
 
 function renderStatBlock() {
@@ -829,11 +838,13 @@ function renderStatBlock() {
   });
 
   const quickHTML = quickActions.length
-    ? `<div class="section-group"><div class="section-title">Quick Actions:</div>${quickActions.map(q => `<div class="no-break">${q}</div>`).join("")}</div>`
+    ? `<div class="section-title">Quick Actions:</div>${quickActions.map(q => `<div class="no-break">${q}</div>`).join("")}`
     : "";
 
-  const output = `
-    <div style="font-family:'Literata', serif; font-size:16px; padding:8px; border:2px solid #000; background:#fff; color:#111;">
+  // Identity block: name / type / CL / theme, the HP line, and the skills
+  // table. Kept as ONE block so it never gets split, and placed first in the
+  // flow so it always sits at the top of column 1 (block 0 is never moved).
+  const headerHTML = `<div class="no-break">
       <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:20px; border-bottom:2px solid black; margin-bottom:10px;">
         <div><div>${name}</div><div style="font-size:14px;">${typeSize}</div></div>
         <div style="text-align:right;"><div>CL ${cl}</div><div style="font-size:14px;">${theme}</div></div>
@@ -843,17 +854,71 @@ function renderStatBlock() {
         ${sorce || isMythic ? `| <b>Sorce:</b> ${sorce}` : ""}
       </div>
       ${condensedSkillsTable()}
-      ${traitsHTML ? `<div class="no-break">${traitsHTML}</div>` : ""}
-      ${sectionHTML("passives", "Traits")}
-      ${spellcastingHTML()}
-      ${standardActionsHTML()}
-      ${quickHTML}
-      ${sectionHTML("reaction", "Reactions")}
+    </div>`;
+
+  // One continuous flow of blocks. balanceStatColumns() splits it across two
+  // columns by measured height so neither column ends in dead whitespace.
+  const flowHTML = [
+    headerHTML,
+    traitsHTML ? `<div class="no-break">${traitsHTML}</div>` : "",
+    sectionHTML("passives", "Traits"),
+    spellcastingHTML(),
+    standardActionsHTML(),
+    quickHTML,
+    sectionHTML("reaction", "Reactions")
+  ].join("");
+
+  const output = `
+    <div style="font-family:'Literata', serif; font-size:16px; padding:8px; border:2px solid #000; background:#fff; color:#111;">
+      <div class="sb-twocol">
+        <div class="sb-col" id="sbColA">${flowHTML}</div>
+        <div class="sb-col" id="sbColB"></div>
+      </div>
     </div>
   `;
 
   document.getElementById("renderedOutput").innerHTML = output;
   document.getElementById("renderedOutput").style.display = "block";
+  // Must run AFTER display:block — heights measure as 0 while hidden.
+  balanceStatColumns();
+}
+
+function blockOuterHeight(el) {
+  const cs = getComputedStyle(el);
+  return el.getBoundingClientRect().height
+    + (parseFloat(cs.marginTop) || 0)
+    + (parseFloat(cs.marginBottom) || 0);
+}
+
+function balanceStatColumns() {
+  const colA = document.getElementById("sbColA");
+  const colB = document.getElementById("sbColB");
+  if (!colA || !colB) return;
+  const blocks = [...colA.children];
+  // Nothing to split. Column B stays in the DOM (empty) so the grid keeps two
+  // columns and the skills table stays at column width rather than stretching.
+  if (blocks.length < 2) return;
+
+  const heights = blocks.map(blockOuterHeight);
+  const total = heights.reduce((a, b) => a + b, 0);
+
+  // Find the split index that makes the two column heights as equal as possible.
+  // i starts at 1, so the identity block (name/CL/HP/skills) always stays in
+  // column 1.
+  let best = blocks.length, bestDiff = Infinity, run = 0;
+  for (let i = 1; i < blocks.length; i++) {
+    run += heights[i - 1];
+    const diff = Math.abs(run - (total - run));
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  }
+
+  // Never strand a section title at the bottom of column A —
+  // push it to the top of column B instead.
+  while (best > 1 && blocks[best - 1].classList.contains("section-title")) best--;
+
+  if (best >= blocks.length) return;
+
+  for (let i = best; i < blocks.length; i++) colB.appendChild(blocks[i]);
 }
 
 function downloadImage() {
@@ -947,13 +1012,14 @@ function sectionHTML(sectionId, title) {
   if (!section || (toggle && !toggle.checked)) return "";
   const entries = [...section.querySelectorAll("div")].filter(div => div.querySelector("textarea"));
   if (entries.length === 0) return "";
-  let inner = `<div class="section-title">${title}</div>`;
+  let inner = "";
   entries.forEach(div => {
     const name = div.querySelector(".entryName")?.value || "";
     const text = div.querySelector("textarea")?.value || "";
     if (text || name) inner += `<div class="no-break"><b>${name}</b>: ${text}</div>`;
   });
-  return `<div class="section-group">${inner}</div>`;
+  if (!inner) return "";
+  return `<div class="section-title">${title}</div>${inner}`;
 }
 
 const skills = {
