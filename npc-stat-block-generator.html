@@ -249,6 +249,8 @@
       margin-top: 4px;
     }
     #statBlockForm button:hover { color: var(--white); border-color: rgba(79,195,247,0.5); background: rgba(79,195,247,0.08); }
+    #statBlockForm button.btn-primary { background: var(--gold); color: var(--void); border: none; font-weight: 600; }
+    #statBlockForm button.btn-primary:hover { background: var(--gold-pale); color: var(--void); border-color: transparent; box-shadow: 0 0 20px rgba(201,168,76,0.35); }
     .section-row {
       display: flex;
       flex-wrap: wrap;
@@ -459,7 +461,7 @@
     .bp-bar-fill.over { background: var(--red); }
 
     .btn { display: inline-block; font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.65rem 1.4rem; border-radius: 4px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-    .btn-primary { background: var(--gold); color: var(--void); }
+    .btn-primary { background: var(--gold); color: var(--void); border: none; font-weight: 600; }
     .btn-primary:hover { background: var(--gold-pale); box-shadow: 0 0 20px rgba(201,168,76,0.35); transform: translateY(-1px); }
     .btn-secondary { background: transparent; color: var(--cyan); border: 1px solid rgba(79,195,247,0.4); }
     .btn-secondary:hover { background: rgba(79,195,247,0.08); border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); transform: translateY(-1px); }
@@ -616,7 +618,7 @@
       <li>The <strong>Mythic</strong> checkbox will also automatically add all Mythic traits to the stat block.</li>
       <li>Opposing modifiers for skills are calculated automatically.</li>
       <li>Adding an <strong>Ability</strong> Standard Action will auto-add the Charging quick action.</li>
-      <li>The Tracker and Generator each save/load their own separate JSON files — they are not compatible with each other, so use <strong>Load into Generator</strong> to move data between them.</li>
+      <li><strong>Save JSON</strong> / <strong>Load JSON</strong> (top of the Stat Block Generator tab) save your Tracker and Generator progress together in one file. Old stat block JSON files from before the merge still load fine, but old Stat Tracker-only JSON files are no longer supported.</li>
     </ul>
   </div>
 </div>
@@ -790,10 +792,8 @@
         <!-- Actions -->
         <div class="btn-group">
           <button class="btn btn-primary" onclick="viewSummary()">View Summary</button>
-          <button class="btn btn-save" onclick="saveTrackerJSON()">Save JSON</button>
-          <input type="file" id="trackerJsonFile" accept="application/json" style="display:none" onchange="loadTrackerJSON(this.files[0])">
-          <button class="btn btn-load" onclick="document.getElementById('trackerJsonFile').click()">Load JSON</button>
           <button class="btn btn-load-into" onclick="loadTrackerIntoGenerator()">Load into Generator &rsaquo;</button>
+          <p class="helper" style="width:100%; margin-top:0.25rem;">Use <strong>Save JSON</strong> / <strong>Load JSON</strong> on the Stat Block Generator tab to save or resume your full build, including this tracker.</p>
         </div>
 
       </div>
@@ -830,9 +830,9 @@
     <h2 style="grid-column: 1 / -1;">Creature Stat Block Generator</h2>
 
     <div style="grid-column: 1 / -1;">
-      <button type="button" class="btn-site btn-save" onclick="saveStatJSON()">Save .json</button>
+      <button type="button" class="btn-site btn-primary" onclick="saveStatJSON()">Save JSON</button>
       <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
-      <button type="button" class="btn-site btn-load" onclick="document.getElementById('statJsonFile').click()">Load .json</button>
+      <button type="button" class="btn-site btn-primary" onclick="document.getElementById('statJsonFile').click()">Load JSON</button>
     </div>
 
     <div class="section-row" style="grid-column: 1 / -1;">
@@ -941,7 +941,7 @@
 
     <div style="grid-column: 1 / -1;">
       <button onclick="renderStatBlock()">Generate Stat Block</button>
-      <button onclick="downloadImage()">Download Stat Block</button>
+      <button class="btn-site btn-primary" onclick="downloadImage()">Download Stat Block</button>
     </div>
   </div>
   <!-- ═══ END ORIGINAL FORM ═══ -->
@@ -1457,13 +1457,18 @@ function initSkills() {
 
 // ─── SAVE ───
 function saveStatJSON() {
-  const data = collectStructuredState();
-  const name = (document.getElementById('name')?.value || 'Creature').trim();
+  const data = {
+    npcGenerator: true,
+    version: 1,
+    tracker: collectTrackerState(),
+    generator: collectStructuredState()
+  };
+  const name = (document.getElementById('name')?.value || document.getElementById('npcName')?.value || 'Creature').trim() || 'Creature';
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${name}-statblock.json`;
+  a.download = `${name}-npc.json`;
   document.body.appendChild(a);
   a.click();
   URL.revokeObjectURL(url);
@@ -1471,15 +1476,26 @@ function saveStatJSON() {
 }
 
 // ─── LOAD ───
+// Accepts the merged Tracker+Generator format this tool now saves, and
+// remains backwards compatible with .json files from the standalone
+// Stat Block Generator that predated the merge (they have no "tracker" key).
 function loadStatJSON(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const data = JSON.parse(reader.result);
-      restoreStructuredState(data);
+      if (data && data.generator && data.tracker) {
+        restoreStructuredState(data.generator);
+        restoreTrackerState(data.tracker);
+      } else if (data && data.keyed) {
+        restoreStructuredState(data);
+      } else {
+        alert("This doesn't look like an NPC Generator .json file.");
+        return;
+      }
     } catch (e) {
-      alert("Could not read this file. Is it a valid stat block .json?");
+      alert("Could not read this file. Is it a valid NPC Generator .json?");
       console.error(e);
     }
   };
@@ -2007,8 +2023,8 @@ window.onload = function() {
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
 
-  function saveTrackerJSON() {
-    const data = {
+  function collectTrackerState() {
+    return {
       version: 1,
       npcName:          document.getElementById('npcName').value,
       theme:            document.getElementById('themeSelect').value,
@@ -2027,64 +2043,45 @@ window.onload = function() {
         bp:   div.querySelector('.bp-cost').value
       }))
     };
-
-    const name = (document.getElementById('npcName').value.trim() || 'NPC').replace(/[<>:"/\\|?*]+/g,'');
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${name}-stat-tracker.json`;
-    document.body.appendChild(a); a.click();
-    URL.revokeObjectURL(url); a.remove();
   }
 
-  function loadTrackerJSON(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const d = JSON.parse(reader.result);
+  function restoreTrackerState(d) {
+    if (!d) return;
 
-        if (d.npcName !== undefined)        document.getElementById('npcName').value = d.npcName;
-        if (d.theme !== undefined)          document.getElementById('themeSelect').value = d.theme;
-        if (d.cl !== undefined)             { document.getElementById('clSelect').value = d.cl; }
-        if (d.statusIncrease !== undefined) document.getElementById('statusIncrease').value = d.statusIncrease;
-        if (d.attrPointChange !== undefined) document.getElementById('attrPointChange').value = d.attrPointChange;
-        if (d.skillPointChange !== undefined) document.getElementById('skillPointChange').value = d.skillPointChange;
-        if (d.baseDamageChange !== undefined) document.getElementById('baseDamageChange').value = d.baseDamageChange;
-        if (d.attrStr !== undefined) document.getElementById('attrStr').value = d.attrStr;
-        if (d.attrAgi !== undefined) document.getElementById('attrAgi').value = d.attrAgi;
-        if (d.attrWit !== undefined) document.getElementById('attrWit').value = d.attrWit;
-        if (d.attrEmp !== undefined) document.getElementById('attrEmp').value = d.attrEmp;
+    if (d.npcName !== undefined)        document.getElementById('npcName').value = d.npcName;
+    if (d.theme !== undefined)          document.getElementById('themeSelect').value = d.theme;
+    if (d.cl !== undefined)             document.getElementById('clSelect').value = d.cl;
+    if (d.statusIncrease !== undefined) document.getElementById('statusIncrease').value = d.statusIncrease;
+    if (d.attrPointChange !== undefined) document.getElementById('attrPointChange').value = d.attrPointChange;
+    if (d.skillPointChange !== undefined) document.getElementById('skillPointChange').value = d.skillPointChange;
+    if (d.baseDamageChange !== undefined) document.getElementById('baseDamageChange').value = d.baseDamageChange;
+    if (d.attrStr !== undefined) document.getElementById('attrStr').value = d.attrStr;
+    if (d.attrAgi !== undefined) document.getElementById('attrAgi').value = d.attrAgi;
+    if (d.attrWit !== undefined) document.getElementById('attrWit').value = d.attrWit;
+    if (d.attrEmp !== undefined) document.getElementById('attrEmp').value = d.attrEmp;
 
-        if (d.skills) {
-          Object.entries(d.skills).forEach(([id, val]) => {
-            const el = document.getElementById(id);
-            if (el) el.value = val;
-          });
-        }
+    if (d.skills) {
+      Object.entries(d.skills).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      });
+    }
 
-        // Restore BP features
-        const list = document.getElementById('talentList');
-        list.innerHTML = '';
-        (d.talents || []).forEach(({ text, bp }) => {
-          addTalent();
-          const last = list.querySelector('.bp-entry:last-child');
-          last.querySelector('textarea').value = text || '';
-          last.querySelector('.bp-cost').value = bp || '';
-        });
+    // Restore BP features
+    const list = document.getElementById('talentList');
+    list.innerHTML = '';
+    (d.talents || []).forEach(({ text, bp }) => {
+      addTalent();
+      const last = list.querySelector('.bp-entry:last-child');
+      last.querySelector('textarea').value = text || '';
+      last.querySelector('.bp-cost').value = bp || '';
+    });
 
-        // Re-run all calculations
-        handleCLChange();
-        validateAttributeAllocation();
-        validateSkills();
-        recalculateBP();
-
-      } catch(e) {
-        alert('Could not read file. Is it a valid stat tracker JSON?');
-        console.error(e);
-      }
-    };
-    reader.readAsText(file);
+    // Re-run all calculations
+    handleCLChange();
+    validateAttributeAllocation();
+    validateSkills();
+    recalculateBP();
   }
 
   // ─── Tabs ───
