@@ -613,12 +613,12 @@
     <h2 style="font-family:'Cinzel Decorative',serif; font-size:1rem; color:#eef2ff; margin-bottom:0.75rem; letter-spacing:0.02em;">Notes about using the NPC Generator</h2>
     <ul>
       <li>Use the <strong>Stat Tracker</strong> tab to plan your build and spend BP, then click <strong>Load into Generator</strong> to carry Name, Attributes, Skills, HP, DP, and MP over to the <strong>Stat Block Generator</strong> tab.</li>
-      <li><strong>View Summary</strong> opens a side panel with your tracked stats so you can reference it while working in either tab.</li>
-      <li>If you check <strong>Mythic</strong>, do not adjust HP/DP/MP manually — they will be auto-scaled when you generate.</li>
+      <li><strong>View Summary</strong> opens a side panel with your tracked stats and BP features so you can reference it while working in either tab.</li>
+      <li>If you check <strong>Mythic</strong>, do not adjust HP/DP/MP manually, since they will be auto-scaled when you generate.</li>
       <li>The <strong>Mythic</strong> checkbox will also automatically add all Mythic traits to the stat block.</li>
       <li>Opposing modifiers for skills are calculated automatically.</li>
       <li>Adding an <strong>Ability</strong> Standard Action will auto-add the Charging quick action.</li>
-      <li><strong>Save JSON</strong> / <strong>Load JSON</strong> (top of the Stat Block Generator tab) save your Tracker and Generator progress together in one file. Old stat block JSON files from before the merge still load fine, but old Stat Tracker-only JSON files are no longer supported.</li>
+      <li><strong>Save JSON</strong> / <strong>Load JSON</strong> saves your Tracker and Generator progress together in one file.</li>
     </ul>
   </div>
 </div>
@@ -793,7 +793,8 @@
         <div class="btn-group">
           <button class="btn btn-primary" onclick="viewSummary()">View Summary</button>
           <button class="btn btn-load-into" onclick="loadTrackerIntoGenerator()">Load into Generator &rsaquo;</button>
-          <p class="helper" style="width:100%; margin-top:0.25rem;">Use <strong>Save JSON</strong> / <strong>Load JSON</strong> on the Stat Block Generator tab to save or resume your full build, including this tracker.</p>
+          <button class="btn btn-primary" onclick="saveStatJSON()">Save JSON</button>
+          <button class="btn btn-primary" onclick="document.getElementById('statJsonFile').click()">Load JSON</button>
         </div>
 
       </div>
@@ -831,7 +832,6 @@
 
     <div style="grid-column: 1 / -1;">
       <button type="button" class="btn-site btn-primary" onclick="saveStatJSON()">Save JSON</button>
-      <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
       <button type="button" class="btn-site btn-primary" onclick="document.getElementById('statJsonFile').click()">Load JSON</button>
     </div>
 
@@ -954,7 +954,10 @@
 
 </div>
 
-<!-- Tracker Summary — side drawer, viewable alongside either tab -->
+<!-- Shared save/load JSON file input, kept outside both tab panels so it works from either tab -->
+<input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
+
+<!-- Tracker Summary, side drawer, viewable alongside either tab -->
 <aside id="summaryDrawer" class="summary-drawer" aria-hidden="true">
   <div class="summary-drawer-header">
     <span>NPC Summary</span>
@@ -1715,6 +1718,18 @@ function restoreStructuredState(state) {
 }
 
 window.onload = function() {
+  // A browser reload can restore stale values on static fields (especially
+  // checkboxes), which desyncs toggles like "Traits?" from their hidden
+  // section. Force every field back to its markup default before anything
+  // else runs, so a refresh always starts from a clean slate.
+  document.querySelectorAll('#panelGenerator input, #panelTracker input').forEach(el => {
+    if (el.type === 'checkbox') el.checked = false;
+    else if (el.type !== 'file') el.value = el.defaultValue;
+  });
+  ['passives', 'quick', 'reaction', 'spellSection'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
   initSkills();
   initCLDropdown();
   document.getElementById('themeSelect').value = 'Brute';
