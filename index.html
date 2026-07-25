@@ -402,14 +402,14 @@
     .mode-card:hover { transform: translateY(-4px); border-color: rgba(79,195,247,0.3); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
     .mode-card:hover::before { opacity: 1; }
     .mode-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
       display: block;
-      filter: drop-shadow(0 0 8px currentColor);
+      width: calc(100% + 4rem);
+      height: 180px;
+      object-fit: cover;
+      margin: -2rem -2rem 1.25rem;
+      border-radius: 8px 8px 0 0;
+      border-bottom: 1px solid var(--border);
     }
-    .mode-card:nth-child(1) .mode-icon { color: var(--cyan); }
-    .mode-card:nth-child(2) .mode-icon { color: var(--gold); }
-    .mode-card:nth-child(3) .mode-icon { color: #b46eff; }
     .mode-title {
       font-family: var(--font-heading);
       font-size: 1rem;
@@ -948,36 +948,17 @@
       </p>
       <div class="modes-grid">
         <div class="mode-card reveal">
-          <span class="mode-icon">✦</span>
+          <img class="mode-icon" src="images/icons/freeform-roleplay.webp" alt="" loading="lazy">
           <h3 class="mode-title">Freeform Roleplay</h3>
           <p class="mode-body">Time flows fluidly, driven by your actions and intentions. Resolve conflicts, explore scenes, and weave creative stories by invoking your character, the environment, and the items at hand.</p>
         </div>
         <div class="mode-card reveal">
-          <span class="mode-icon">⚔</span>
+          <img class="mode-icon" src="images/icons/tactical-combat.webp" alt="" loading="lazy">
           <h3 class="mode-title">Tactical Combat</h3>
           <p class="mode-body">Violent confrontations broken into 6-second intervals. Strategic planning and tight teamwork are your weapons. Every move matters when the clock is ticking and lives are on the line.</p>
         </div>
         <div class="mode-card reveal">
-          <span class="mode-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="2rem" height="2rem" fill="currentColor" aria-hidden="true">
-              <!-- Main mast -->
-              <rect x="23" y="4" width="2" height="28" rx="1"/>
-              <!-- Fore mast -->
-              <rect x="33" y="10" width="1.5" height="20" rx="0.75"/>
-              <!-- Main sail (large) -->
-              <polygon points="25,6 25,22 10,22"/>
-              <!-- Top sail (small) -->
-              <polygon points="25,6 25,14 17,14"/>
-              <!-- Fore sail -->
-              <polygon points="34.5,12 34.5,24 27,24"/>
-              <!-- Hull -->
-              <path d="M6,32 Q8,28 14,28 L34,28 Q40,28 42,32 L38,38 Q24,42 10,38 Z"/>
-              <!-- Bowsprit -->
-              <line x1="34" y1="28" x2="44" y2="20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              <!-- Jib sail -->
-              <polygon points="34,28 43,21 34,18" opacity="0.7"/>
-            </svg>
-          </span>
+          <img class="mode-icon" src="images/icons/veilstrider-conflict.webp" alt="" loading="lazy">
           <h3 class="mode-title">Veilstrider Conflict</h3>
           <p class="mode-body">Take the helm of a massive magitech ship and clash with enemy vessels or gargantuan entities. Coordinate your crew, hold your positioning, and secure victory among the stars.</p>
         </div>
