@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NPC Stat Block Generator — Realms of Legacy</title>
+  <title>NPC Generator — Realms of Legacy</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Literata&family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Literata&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     /* ─── Starfield background ─── */
@@ -13,16 +13,21 @@
 
     :root {
       --void: #04060f;
+      --deep: #080d1c;
       --border: rgba(100,160,255,0.15);
       --border-gold: rgba(201,168,76,0.25);
       --cyan: #4fc3f7;
+      --cyan-glow: rgba(79,195,247,0.25);
       --gold: #c9a84c;
       --gold-pale: #e8d5a3;
       --text: #c8d8f0;
       --text-dim: #7a90b8;
       --white: #eef2ff;
+      --red: #e05555;
+      --blue-hint: rgba(79,130,255,0.5);
       --font-display: 'Cinzel Decorative', serif;
       --font-heading: 'Cinzel', serif;
+      --font-body: 'Crimson Pro', serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -345,7 +350,192 @@
     #renderedOutput th { background: #eee !important; font-weight: bold !important; font-size: 14px !important; padding: 3px 6px !important; text-align: left !important; border-color: #000 !important; }
     #renderedOutput td { padding: 2px 6px !important; font-size: 14px !important; text-align: left !important; background: transparent !important; border-color: #000 !important; }
     #renderedOutput .section-title { font-weight: 700 !important; font-size: 1.1em !important; color: #222 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; margin: 6px 0 4px !important; border-bottom: 2px solid #000 !important; padding-bottom: 2px !important; display: block !important; }
-  
+
+    /* ─── Tool Tabs ─── */
+    .tool-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tool-tab {
+      font-family: var(--font-heading);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tool-tab:hover { color: var(--white); }
+    .tool-tab.active { color: var(--gold-pale); border-bottom-color: var(--gold); }
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    /* ─── Stat Tracker (ported) ─── */
+    .tool-wrap {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 960px) { .tool-wrap { grid-template-columns: 1fr; } }
+
+    .card {
+      background: rgba(13,22,48,0.75);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card:last-child { margin-bottom: 0; }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold-pale);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-gold);
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+    .field-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .field-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .field-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .field label {
+      font-family: var(--font-heading);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    input[readonly], input[disabled] {
+      background: rgba(4,6,15,0.6);
+      color: var(--text-dim);
+      cursor: default;
+      border-color: rgba(100,160,255,0.08);
+    }
+    input.over  { border-color: var(--red) !important; box-shadow: 0 0 0 2px rgba(224,85,85,0.15) !important; }
+    input.under { border-color: var(--blue-hint) !important; box-shadow: 0 0 0 2px rgba(79,130,255,0.1) !important; }
+    .helper { font-size: 0.9rem; color: var(--text); margin-top: 0.5rem; line-height: 1.5; }
+
+    .dmg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-top: 0.75rem; }
+    .dmg-card { background: rgba(8,13,28,0.6); border: 1px solid var(--border); border-radius: 5px; padding: 0.6rem 0.75rem; text-align: center; }
+    .dmg-card .dmg-val { font-family: var(--font-display); font-size: 1.2rem; color: var(--gold); display: block; }
+    .dmg-card .dmg-label { font-family: var(--font-heading); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); }
+
+    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .status-card { background: rgba(8,13,28,0.6); border: 1px solid var(--border); border-radius: 6px; padding: 0.85rem 1rem; text-align: center; }
+    .status-card.hp { border-top: 2px solid #e05555; }
+    .status-card.dp { border-top: 2px solid #4fc3f7; }
+    .status-card.mp { border-top: 2px solid #b46eff; }
+    .status-card .status-label { font-family: var(--font-heading); font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text); margin-bottom: 0.4rem; }
+    .status-card input { background: transparent; border: none; text-align: center; font-family: var(--font-display); font-size: 1.6rem; color: var(--white); cursor: default; padding: 0; }
+    .status-card.hp input { color: #e07070; }
+    .status-card.dp input { color: var(--cyan); }
+    .status-card.mp input { color: #b46eff; }
+
+    .bp-entry { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.75rem; }
+    .bp-entry textarea { flex: 1; height: 64px; resize: vertical; }
+    .bp-entry .bp-cost { width: 72px; flex-shrink: 0; text-align: center; }
+    .bp-entry .bp-remove { background: none; border: 1px solid rgba(224,85,85,0.3); color: #e07070; border-radius: 4px; padding: 0.3rem 0.5rem; cursor: pointer; font-size: 0.85rem; transition: background 0.2s, border-color 0.2s; flex-shrink: 0; align-self: center; }
+    .bp-entry .bp-remove:hover { background: rgba(224,85,85,0.1); border-color: var(--red); }
+
+    .bp-bar-wrap { margin-top: 0.75rem; }
+    .bp-bar-label { display: flex; justify-content: space-between; font-family: var(--font-heading); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); margin-bottom: 0.35rem; }
+    .bp-bar-label span { color: var(--white); }
+    .bp-bar-track { height: 6px; background: rgba(8,13,28,0.8); border-radius: 3px; border: 1px solid var(--border); overflow: hidden; }
+    .bp-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; background: var(--cyan); }
+    .bp-bar-fill.over { background: var(--red); }
+
+    .btn { display: inline-block; font-family: var(--font-heading); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.65rem 1.4rem; border-radius: 4px; border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-primary { background: var(--gold); color: var(--void); }
+    .btn-primary:hover { background: var(--gold-pale); box-shadow: 0 0 20px rgba(201,168,76,0.35); transform: translateY(-1px); }
+    .btn-secondary { background: transparent; color: var(--cyan); border: 1px solid rgba(79,195,247,0.4); }
+    .btn-secondary:hover { background: rgba(79,195,247,0.08); border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--white); border-color: rgba(100,160,255,0.35); }
+    .btn-sm { font-size: 0.75rem; padding: 0.5rem 1rem; }
+    .btn.btn-save { background: rgba(79,195,247,0.08); color: var(--cyan); border: 1px solid rgba(79,195,247,0.3); }
+    .btn.btn-save:hover { background: rgba(79,195,247,0.18); }
+    .btn.btn-load { background: rgba(201,168,76,0.08); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+    .btn.btn-load:hover { background: rgba(201,168,76,0.18); }
+    .btn.btn-load-into { background: rgba(180,110,255,0.08); color: #c9a0ff; border: 1px solid rgba(180,110,255,0.3); }
+    .btn.btn-load-into:hover { background: rgba(180,110,255,0.18); }
+    .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+
+    #summaryBox { background: #fff; border: 2px solid #000; position: relative; padding: 4px; max-width: 100%; margin: 0 auto; font-family: 'Literata', Georgia, serif; color: #111; }
+    #summaryBox::before { content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; border: 2px solid #000; pointer-events: none; box-sizing: border-box; }
+    #summaryBox h2 { font-family: 'Literata', Georgia, serif; font-size: 1.4rem; font-weight: 700; color: #111; margin-bottom: 0.15rem; }
+    #summaryBox h3 { font-family: 'Literata', Georgia, serif; font-size: 0.95rem; font-weight: 400; font-style: italic; color: #444; margin-bottom: 0.75rem; text-transform: none; letter-spacing: normal; }
+    #summaryBox h4 { font-family: 'Literata', Georgia, serif; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #222; margin: 0.75rem 0 0.3rem; padding-bottom: 2px; border-bottom: 2px solid #000; }
+    #summaryBox p { font-family: 'Literata', Georgia, serif; font-size: 0.92rem; color: #111; line-height: 1.6; margin-bottom: 0.15rem; }
+    #summaryBox > * { position: relative; }
+    #summaryCanvas { display: none; }
+
+    /* ─── Summary side drawer ─── */
+    .summary-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: min(440px, 92vw);
+      background: var(--deep);
+      border-left: 1px solid var(--border);
+      box-shadow: -12px 0 40px rgba(0,0,0,0.5);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+    }
+    .summary-drawer.open { transform: translateX(0); }
+    .summary-drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-heading);
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold-pale);
+      flex-shrink: 0;
+    }
+    .summary-drawer-close {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .summary-drawer-close:hover { color: var(--white); border-color: rgba(100,160,255,0.4); }
+    .summary-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+    }
+    .summary-drawer-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
     /* ─── Online Tools dropdown ─── */
     nav { overflow: visible !important; }
     .nav-dropdown { position: relative; }
@@ -411,21 +601,22 @@
 
 <!-- Page header -->
 <div class="page-header">
-  <p class="breadcrumb"><a href="npc-creator.html">NPC Creator</a> &rsaquo; Stat Block Generator</p>
-  <h1>NPC Stat Block Generator</h1>
+  <p class="breadcrumb"><a href="npc-creator.html">NPC Creator</a> &rsaquo; NPC Generator</p>
+  <h1>NPC Generator</h1>
 </div>
 
 <!-- Info banner -->
 <div class="info-banner">
   <div class="banner-inner">
-    <h2 style="font-family:'Cinzel Decorative',serif; font-size:1rem; color:#eef2ff; margin-bottom:0.75rem; letter-spacing:0.02em;">Notes about using the Stat Block Generator</h2>
+    <h2 style="font-family:'Cinzel Decorative',serif; font-size:1rem; color:#eef2ff; margin-bottom:0.75rem; letter-spacing:0.02em;">Notes about using the NPC Generator</h2>
     <ul>
+      <li>Use the <strong>Stat Tracker</strong> tab to plan your build and spend BP, then click <strong>Load into Generator</strong> to carry Name, Attributes, Skills, HP, DP, and MP over to the <strong>Stat Block Generator</strong> tab.</li>
+      <li><strong>View Summary</strong> opens a side panel with your tracked stats so you can reference it while working in either tab.</li>
       <li>If you check <strong>Mythic</strong>, do not adjust HP/DP/MP manually — they will be auto-scaled when you generate.</li>
       <li>The <strong>Mythic</strong> checkbox will also automatically add all Mythic traits to the stat block.</li>
       <li>Opposing modifiers for skills are calculated automatically.</li>
       <li>Adding an <strong>Ability</strong> Standard Action will auto-add the Charging quick action.</li>
-      <li>The <strong>Save JSON</strong> button saves your work; <strong>Load JSON</strong> resumes editing later.</li>
-      <li>The JSON saved in the <strong>Stat Tracker</strong> is separate from the JSON saved in this generator. They are not compatible with each other.</li>
+      <li>The Tracker and Generator each save/load their own separate JSON files — they are not compatible with each other, so use <strong>Load into Generator</strong> to move data between them.</li>
     </ul>
   </div>
 </div>
@@ -433,9 +624,216 @@
 <!-- Content -->
 <div class="content-wrap">
 
+  <div class="tool-tabs">
+    <button class="tool-tab active" id="tabBtnTracker" onclick="switchTab('tracker')" type="button">Stat Tracker</button>
+    <button class="tool-tab" id="tabBtnGenerator" onclick="switchTab('generator')" type="button">Stat Block Generator</button>
+  </div>
+
+  <!-- ═══ STAT TRACKER PANEL (ported from npc-stat-tracker.html) ═══ -->
+  <div id="panelTracker" class="tool-panel active">
+    <div class="tool-wrap">
+
+      <!-- LEFT COLUMN -->
+      <div>
+
+        <!-- Identity -->
+        <div class="card">
+          <p class="card-title">Identity</p>
+          <div class="field-grid field-grid-3">
+            <div class="field" style="grid-column: span 3;">
+              <label>Name</label>
+              <input type="text" id="npcName" placeholder="Creature name" />
+            </div>
+            <div class="field">
+              <label>Theme</label>
+              <select id="themeSelect" onchange="recalculateStatusFromTheme()">
+                <option value="">-- Select --</option>
+                <option value="Brute">Brute</option>
+                <option value="Skirmisher">Skirmisher</option>
+                <option value="Marksman">Marksman</option>
+                <option value="Lurker">Lurker</option>
+                <option value="Tactician">Tactician</option>
+                <option value="Spellcaster">Spellcaster</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Challenge Level (CL)</label>
+              <select id="clSelect" onchange="handleCLChange()"></select>
+            </div>
+            <div class="field">
+              <label>Status Points Buy Count</label>
+              <input type="number" id="statusIncrease" value="0" min="0" max="70" oninput="handleStatusIncreaseChange()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Attributes -->
+        <div class="card">
+          <p class="card-title">Attributes</p>
+          <div class="field-grid field-grid-4">
+            <div class="field">
+              <label>Attribute Points</label>
+              <input type="number" id="attrPoints" readonly />
+            </div>
+            <div class="field">
+              <label>+/- Points</label>
+              <input type="number" id="attrPointChange" value="0" oninput="handleAttrPointChange()" />
+            </div>
+            <div class="field">
+              <label>Build Points</label>
+              <input type="number" id="bpMax" readonly />
+            </div>
+            <div class="field">
+              <label>Build Points Spent</label>
+              <input type="number" id="bpSpent" disabled />
+            </div>
+          </div>
+          <p class="helper">BP Spent updates as you add features in the right panel. Place a negative cost to refund stats for extra BP.</p>
+
+          <div style="margin-top: 1.25rem;">
+            <p class="card-title" style="margin-bottom:0.75rem;">Attribute Allocation</p>
+            <div class="field" style="max-width:160px; margin-bottom:0.75rem;">
+              <label>Max Attribute Rank</label>
+              <input type="number" id="maxAttrRank" readonly />
+            </div>
+            <div class="field-grid field-grid-4">
+              <div class="field"><label>Strength</label><input type="number" id="attrStr" value="0" oninput="validateAttributeAllocation()" /></div>
+              <div class="field"><label>Agility</label><input type="number" id="attrAgi" value="0" oninput="validateAttributeAllocation()" /></div>
+              <div class="field"><label>Wits</label><input type="number" id="attrWit" value="0" oninput="validateAttributeAllocation()" /></div>
+              <div class="field"><label>Empathy</label><input type="number" id="attrEmp" value="0" oninput="validateAttributeAllocation()" /></div>
+            </div>
+            <p class="helper" id="attrValidMsg" style="margin-top:0.5rem;"></p>
+          </div>
+        </div>
+
+        <!-- Skills -->
+        <div class="card">
+          <p class="card-title">Skills</p>
+          <div class="field-grid field-grid-4" style="margin-bottom:1rem;">
+            <div class="field">
+              <label>Skill Points</label>
+              <input type="number" id="skillPoints" readonly />
+            </div>
+            <div class="field">
+              <label>+/- Points</label>
+              <input type="number" id="skillPointChange" value="0" oninput="handleSkillPointChange()" />
+            </div>
+            <div class="field">
+              <label>Max Skill Rank</label>
+              <input type="number" id="maxSkillRank" readonly />
+            </div>
+          </div>
+          <p class="card-title" style="margin-bottom:0.75rem;">Skill Allocation</p>
+          <div class="field-grid">
+            <div class="field"><label>Brawl</label><input type="number" id="skillBrawl" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Might</label><input type="number" id="skillMight" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Endure</label><input type="number" id="skillEndure" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Intimidate</label><input type="number" id="skillIntimidate" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Shoot</label><input type="number" id="skillShoot" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Move</label><input type="number" id="skillMove" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Finesse</label><input type="number" id="skillFinesse" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Hide</label><input type="number" id="skillHide" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Analyze</label><input type="number" id="skillAnalyze" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Insight</label><input type="number" id="skillInsight" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Scout</label><input type="number" id="skillScout" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Survival</label><input type="number" id="skillSurvival" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Manipulate</label><input type="number" id="skillManipulate" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Medical</label><input type="number" id="skillMedical" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Perform</label><input type="number" id="skillPerform" value="0" oninput="handleSkillInputChange(this)" /></div>
+            <div class="field"><label>Tame</label><input type="number" id="skillTame" value="0" oninput="handleSkillInputChange(this)" /></div>
+          </div>
+          <p class="helper" id="skillValidMsg" style="margin-top:0.5rem;"></p>
+        </div>
+
+        <!-- Power Rating -->
+        <div class="card">
+          <p class="card-title">Power Rating</p>
+          <div class="field-grid field-grid-2" style="margin-bottom:1rem;">
+            <div class="field">
+              <label>Power Rating</label>
+              <input type="number" id="baseDamage" readonly />
+            </div>
+            <div class="field">
+              <label>Increase / Decrease</label>
+              <input type="number" id="baseDamageChange" value="0" oninput="handlePowerChangeChange()" />
+            </div>
+          </div>
+          <div class="dmg-grid">
+            <div class="dmg-card"><span class="dmg-val" id="bd25">0</span><span class="dmg-label">0.25x PR</span></div>
+            <div class="dmg-card"><span class="dmg-val" id="bd50">0</span><span class="dmg-label">0.5x PR</span></div>
+            <div class="dmg-card"><span class="dmg-val" id="bd150">0</span><span class="dmg-label">1.5x PR</span></div>
+            <div class="dmg-card"><span class="dmg-val" id="bd200">0</span><span class="dmg-label">2x PR</span></div>
+            <div class="dmg-card"><span class="dmg-val" id="bd250">0</span><span class="dmg-label">2.5x PR</span></div>
+            <div class="dmg-card"><span class="dmg-val" id="bd300">0</span><span class="dmg-label">3x PR</span></div>
+          </div>
+        </div>
+
+        <!-- Status Points -->
+        <div class="card">
+          <p class="card-title">Status Points</p>
+          <div class="status-grid">
+            <div class="status-card hp">
+              <div class="status-label">HP</div>
+              <input type="number" id="totalHP" readonly />
+            </div>
+            <div class="status-card dp">
+              <div class="status-label">DP</div>
+              <input type="number" id="totalDP" readonly />
+            </div>
+            <div class="status-card mp">
+              <div class="status-label">MP</div>
+              <input type="number" id="totalMP" readonly />
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="viewSummary()">View Summary</button>
+          <button class="btn btn-save" onclick="saveTrackerJSON()">Save JSON</button>
+          <input type="file" id="trackerJsonFile" accept="application/json" style="display:none" onchange="loadTrackerJSON(this.files[0])">
+          <button class="btn btn-load" onclick="document.getElementById('trackerJsonFile').click()">Load JSON</button>
+          <button class="btn btn-load-into" onclick="loadTrackerIntoGenerator()">Load into Generator &rsaquo;</button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: BP Spent -->
+      <div>
+        <div class="card" style="position:sticky; top:5rem;">
+          <p class="card-title">BP Spent On</p>
+
+          <!-- BP Progress Bar -->
+          <div class="bp-bar-wrap">
+            <div class="bp-bar-label">
+              Build Points <span id="bpBarLabel">0 / 0</span>
+            </div>
+            <div class="bp-bar-track">
+              <div class="bp-bar-fill" id="bpBarFill" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div id="talentList" style="margin-top:1rem;"></div>
+          <button class="btn btn-ghost btn-sm" onclick="addTalent()" style="margin-top:0.5rem;">+ Add BP Feature</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- ═══ END STAT TRACKER PANEL ═══ -->
+
+  <!-- ═══ STAT BLOCK GENERATOR PANEL ═══ -->
+  <div id="panelGenerator" class="tool-panel">
+
   <!-- ═══ ORIGINAL FORM — completely unchanged ═══ -->
   <div id="statBlockForm">
     <h2 style="grid-column: 1 / -1;">Creature Stat Block Generator</h2>
+
+    <div style="grid-column: 1 / -1;">
+      <button type="button" class="btn-site btn-save" onclick="saveStatJSON()">Save .json</button>
+      <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
+      <button type="button" class="btn-site btn-load" onclick="document.getElementById('statJsonFile').click()">Load .json</button>
+    </div>
 
     <div class="section-row" style="grid-column: 1 / -1;">
       <label>Name: <input type="text" id="name"></label>
@@ -542,12 +940,6 @@
     </div>
 
     <div style="grid-column: 1 / -1;">
-      <div style="margin-bottom:8px;">
-      <button type="button" onclick="saveStatJSON()">Save .json</button>
-      <input type="file" id="statJsonFile" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
-      <input type="file" id="statJsonFile2" accept="application/json" style="display:none" onchange="loadStatJSON(this.files[0])">
-      <button type="button" onclick="document.getElementById('statJsonFile2').click()">Load .json</button>
-      </div>
       <button onclick="renderStatBlock()">Generate Stat Block</button>
       <button onclick="downloadImage()">Download Stat Block</button>
     </div>
@@ -557,7 +949,23 @@
   <!-- Rendered output lives OUTSIDE the form so form CSS cannot affect it -->
   <div id="renderedOutput" style="display:none; border:2px solid black; padding:10px; margin-top:12px; background:#fff; max-width:1100px; margin-left:auto; margin-right:auto; font-family:'Literata',serif; font-size:16px; color:#111;"></div>
 
+  </div>
+  <!-- ═══ END STAT BLOCK GENERATOR PANEL ═══ -->
+
 </div>
+
+<!-- Tracker Summary — side drawer, viewable alongside either tab -->
+<aside id="summaryDrawer" class="summary-drawer" aria-hidden="true">
+  <div class="summary-drawer-header">
+    <span>NPC Summary</span>
+    <button class="summary-drawer-close" onclick="closeSummaryDrawer()" aria-label="Close summary">✕</button>
+  </div>
+  <div class="summary-drawer-body" id="summaryPreview"></div>
+  <div class="summary-drawer-footer">
+    <button class="btn btn-secondary btn-sm" onclick="downloadSummaryImage()">Download Summary</button>
+  </div>
+</aside>
+<canvas id="summaryCanvas"></canvas>
 
 <!-- ═══ ORIGINAL JS — 100% verbatim, zero changes ═══ -->
 <script>
@@ -1290,7 +1698,466 @@ function restoreStructuredState(state) {
   }
 }
 
-window.onload = initSkills;
+window.onload = function() {
+  initSkills();
+  initCLDropdown();
+  document.getElementById('themeSelect').value = 'Brute';
+  handleCLChange();
+};
+</script>
+
+<!-- ═══ STAT TRACKER JS (ported from npc-stat-tracker.html) ═══ -->
+<script>
+  let summaryImageData = null;
+
+  const themeConfigs = {
+    Brute:      { hpPerCL: 5, dpPerCL: 1, mpPerCL: 1 },
+    Marksman:   { hpPerCL: 1, dpPerCL: 3, mpPerCL: 3 },
+    Skirmisher: { hpPerCL: 2, dpPerCL: 4, mpPerCL: 1 },
+    Lurker:     { hpPerCL: 2, dpPerCL: 3, mpPerCL: 2 },
+    Tactician:  { hpPerCL: 1, dpPerCL: 2, mpPerCL: 4 },
+    Spellcaster:{ hpPerCL: 2, dpPerCL: 1, mpPerCL: 4 }
+  };
+
+  const attrPointsTable = [3,4,5,6,6,7,7,7,7,8,8,8,8,8,9,9,9,10,10,10,10,11,12,12,12,12,13,13,13,13,14,14,15];
+  const maxAttrRankTable = [4,4,4,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,8,8,8,8,8,8,8,8,8,8];
+  const skillPointsTable = [3,4,5,7,8,9,10,11,12,13,15,16,17,18,19,20,22,23,24,25,26,27,29,30,31,32,33,34,35,36,37,38,39];
+  const maxSkillRankTable = [1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,7,8,8,8,8,8];
+
+  const getAttrPoints = cl => attrPointsTable[cl+2] ?? 0;
+  const getMaxAttrRank = cl => maxAttrRankTable[cl+2] ?? 0;
+  const getSkillPoints = cl => skillPointsTable[cl+2] ?? 0;
+  const getMaxSkillRank = cl => maxSkillRankTable[cl+2] ?? 0;
+
+  function getBuildPointsForCL(cl) {
+    if (cl >= -2 && cl <= 0)  return 10;
+    if (cl >= 1  && cl <= 5)  return 20;
+    if (cl >= 6  && cl <= 10) return 40;
+    if (cl >= 11 && cl <= 15) return 70;
+    if (cl >= 16 && cl <= 20) return 110;
+    if (cl >= 21 && cl <= 25) return 160;
+    if (cl >= 26 && cl <= 30) return 220;
+    return 0;
+  }
+
+  function initCLDropdown() {
+    const sel = document.getElementById('clSelect');
+    for (let cl = -2; cl <= 30; cl++) {
+      const opt = document.createElement('option');
+      opt.value = cl; opt.textContent = cl;
+      sel.appendChild(opt);
+    }
+    sel.value = "-2";
+  }
+
+  function addTalent() {
+    const list = document.getElementById('talentList');
+    const div = document.createElement('div');
+    div.className = 'bp-entry';
+    div.innerHTML = `
+      <textarea placeholder="Describe feature..."></textarea>
+      <input type="number" class="bp-cost" placeholder="BP" oninput="recalculateBP()" />
+      <button class="bp-remove" onclick="this.parentElement.remove(); recalculateBP()">✕</button>
+    `;
+    list.appendChild(div);
+  }
+
+  function recalculateBP() {
+    const bpMax = parseInt(document.getElementById('bpMax').value) || 0;
+    let total = 0;
+    document.querySelectorAll('#talentList .bp-cost').forEach(inp => {
+      const v = parseInt(inp.value);
+      if (!isNaN(v)) total += v;
+    });
+    document.getElementById('bpSpent').value = total;
+
+    const pct = bpMax > 0 ? Math.min((total / bpMax) * 100, 100) : 0;
+    const fill = document.getElementById('bpBarFill');
+    fill.style.width = pct + '%';
+    fill.classList.toggle('over', total > bpMax);
+    document.getElementById('bpBarLabel').textContent = `${total} / ${bpMax}`;
+  }
+
+  function updateDamageMultipliers() {
+    const bd = parseFloat(document.getElementById('baseDamage').value) || 0;
+    ['bd25','bd50','bd150','bd200','bd250','bd300'].forEach((id, i) => {
+      const mult = [0.25, 0.5, 1.5, 2, 2.5, 3][i];
+      document.getElementById(id).textContent = Math.max(Math.floor(bd * mult), 0);
+    });
+  }
+
+  function updatePowerRatingFromCLAndChange() {
+    const cl = parseInt(document.getElementById('clSelect').value);
+    if (isNaN(cl)) return;
+    const change = parseInt(document.getElementById('baseDamageChange').value) || 0;
+    const basePR = Math.max(cl + 7, 1);
+    let finalPR = Math.max(basePR + change, 1);
+    document.getElementById('baseDamage').value = finalPR;
+    updateDamageMultipliers();
+  }
+
+  function handlePowerChangeChange() { updatePowerRatingFromCLAndChange(); }
+
+  function updateBuildPointsFromCL() {
+    const cl = parseInt(document.getElementById('clSelect').value);
+    document.getElementById('bpMax').value = isNaN(cl) ? '' : getBuildPointsForCL(cl);
+    recalculateBP();
+  }
+
+  function updateAttributePointsFromCLAndChange() {
+    const cl = parseInt(document.getElementById('clSelect').value);
+    if (isNaN(cl)) { document.getElementById('attrPoints').value = ''; return; }
+    const change = parseInt(document.getElementById('attrPointChange').value) || 0;
+    document.getElementById('attrPoints').value = Math.max(getAttrPoints(cl) + change, 0);
+    document.getElementById('maxAttrRank').value = getMaxAttrRank(cl);
+    validateAttributeAllocation();
+  }
+
+  function handleAttrPointChange() { updateAttributePointsFromCLAndChange(); }
+
+  function validateAttributeAllocation() {
+    const cap = parseInt(document.getElementById('attrPoints').value) || 0;
+    const ids = ['attrStr','attrAgi','attrWit','attrEmp'];
+    let total = 0;
+    ids.forEach(id => {
+      let v = parseInt(document.getElementById(id).value) || 0;
+      if (v < 0) { v = 0; document.getElementById(id).value = 0; }
+      total += v;
+    });
+    const msg = document.getElementById('attrValidMsg');
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('over','under');
+      if (total > cap) el.classList.add('over');
+      else if (total < cap) el.classList.add('under');
+    });
+    if (total > cap) msg.textContent = `Over by ${total - cap} point(s)`;
+    else if (total < cap) msg.textContent = `${cap - total} point(s) remaining`;
+    else { msg.textContent = ''; }
+  }
+
+  function updateSkillsFromCLAndChange() {
+    const cl = parseInt(document.getElementById('clSelect').value);
+    if (isNaN(cl)) { document.getElementById('skillPoints').value = ''; return; }
+    const change = parseInt(document.getElementById('skillPointChange').value) || 0;
+    document.getElementById('skillPoints').value = Math.max(getSkillPoints(cl) + change, 0);
+    document.getElementById('maxSkillRank').value = getMaxSkillRank(cl);
+    validateSkills();
+  }
+
+  function handleSkillPointChange() { updateSkillsFromCLAndChange(); }
+
+  function handleSkillInputChange(el) {
+    let v = parseInt(el.value);
+    if (isNaN(v) || v < 0) { el.value = 0; }
+    validateSkills();
+  }
+
+  const trackerSkillIds = ['skillBrawl','skillMight','skillEndure','skillIntimidate','skillShoot','skillMove',
+    'skillFinesse','skillHide','skillAnalyze','skillInsight','skillScout','skillSurvival',
+    'skillManipulate','skillMedical','skillPerform','skillTame'];
+
+  function validateSkills() {
+    const maxRank = parseInt(document.getElementById('maxSkillRank').value) || 0;
+    const cap = parseInt(document.getElementById('skillPoints').value) || 0;
+    let total = 0;
+    trackerSkillIds.forEach(id => { total += parseInt(document.getElementById(id).value) || 0; });
+    const msg = document.getElementById('skillValidMsg');
+    trackerSkillIds.forEach(id => {
+      const el = document.getElementById(id);
+      const v = parseInt(el.value) || 0;
+      el.classList.remove('over','under');
+      if (maxRank > 0 && v > maxRank) el.classList.add('over');
+      else if (total > cap) el.classList.add('over');
+      else if (total < cap) el.classList.add('under');
+    });
+    if (total > cap) msg.textContent = `Skill points over by ${total - cap}`;
+    else if (total < cap) msg.textContent = `${cap - total} skill point(s) remaining`;
+    else msg.textContent = '';
+  }
+
+  function handleCLChange() {
+    updateBuildPointsFromCL();
+    updateAttributePointsFromCLAndChange();
+    updateSkillsFromCLAndChange();
+    recalculateStatusFromTheme();
+    updatePowerRatingFromCLAndChange();
+  }
+
+  function handleStatusIncreaseChange() {
+    let v = parseInt(document.getElementById('statusIncrease').value) || 0;
+    v = Math.max(0, Math.min(70, v));
+    document.getElementById('statusIncrease').value = v;
+    recalculateStatusFromTheme();
+  }
+
+  function recalculateStatusFromTheme() {
+    const theme = document.getElementById('themeSelect').value;
+    const cl = parseInt(document.getElementById('clSelect').value);
+    const statusInc = parseInt(document.getElementById('statusIncrease').value) || 0;
+    const cfg = themeConfigs[theme];
+    if (!cfg || isNaN(cl)) {
+      updateBuildPointsFromCL(); updateAttributePointsFromCLAndChange();
+      updateSkillsFromCLAndChange(); updatePowerRatingFromCLAndChange();
+      return;
+    }
+    const delta = Math.max(cl - (-2), 0);
+    document.getElementById('totalHP').value = 3 + delta * cfg.hpPerCL + statusInc * cfg.hpPerCL;
+    document.getElementById('totalDP').value = 3 + delta * cfg.dpPerCL + statusInc * cfg.dpPerCL;
+    document.getElementById('totalMP').value = 3 + delta * cfg.mpPerCL + statusInc * cfg.mpPerCL;
+    updateBuildPointsFromCL(); updateAttributePointsFromCLAndChange();
+    updateSkillsFromCLAndChange(); updatePowerRatingFromCLAndChange();
+  }
+
+  function generateSummary() {
+    const attrCap  = parseInt(document.getElementById('attrPoints').value) || 0;
+    const attrSum  = ['attrStr','attrAgi','attrWit','attrEmp'].reduce((s,id) => s + (parseInt(document.getElementById(id).value)||0), 0);
+    if (attrSum !== attrCap) alert('Warning: Attribute Points Allocated (' + attrSum + ') does not equal Attribute Points (' + attrCap + ').');
+
+    const skillCap = parseInt(document.getElementById('skillPoints').value) || 0;
+    const skillSum = trackerSkillIds.reduce((s,id) => s + (parseInt(document.getElementById(id).value)||0), 0);
+    if (skillSum !== skillCap) alert('Warning: Skill Points Allocated (' + skillSum + ') does not equal Skill Points (' + skillCap + ').');
+
+    const name  = document.getElementById('npcName').value.trim() || 'Unnamed Creature';
+    const theme = document.getElementById('themeSelect').value || 'N/A';
+    const cl    = document.getElementById('clSelect').value || 'N/A';
+
+    const box = document.createElement('div');
+    box.id = 'summaryBox';
+
+    const h2 = document.createElement('h2'); h2.textContent = name; box.appendChild(h2);
+    const h3 = document.createElement('h3'); h3.textContent = `Theme: ${theme} · CL ${cl}`; box.appendChild(h3);
+
+    function h4(t) { const e = document.createElement('h4'); e.textContent = t; box.appendChild(e); }
+    function line(lbl, val) {
+      const v = String(val ?? '');
+      if (v === '' || v === 'NaN') return;
+      const p = document.createElement('p'); p.textContent = `${lbl}: ${v}`; box.appendChild(p);
+    }
+
+    h4('Core Stats');
+    line('CL', cl); line('Theme', theme);
+    line('Attribute Points', document.getElementById('attrPoints').value);
+    line('Max Attribute Rank', document.getElementById('maxAttrRank').value);
+    line('Skill Points', document.getElementById('skillPoints').value);
+    line('Max Skill Rank', document.getElementById('maxSkillRank').value);
+    line('Build Points', document.getElementById('bpMax').value);
+    line('Build Points Spent', document.getElementById('bpSpent').value);
+
+    h4('Attribute Allocation');
+    line('Strength', document.getElementById('attrStr').value);
+    line('Agility', document.getElementById('attrAgi').value);
+    line('Wits', document.getElementById('attrWit').value);
+    line('Empathy', document.getElementById('attrEmp').value);
+
+    h4('Skills');
+    const skillLabels = ['Brawl','Might','Endure','Intimidate','Shoot','Move','Finesse','Hide',
+      'Analyze','Insight','Scout','Survival','Manipulate','Medical','Perform','Tame'];
+    trackerSkillIds.forEach((id, i) => {
+      const v = parseInt(document.getElementById(id).value) || 0;
+      if (v > 0) line(skillLabels[i], v);
+    });
+
+    h4('Power Rating');
+    line('Power Rating', document.getElementById('baseDamage').value);
+    line('0.25x', document.getElementById('bd25').textContent);
+    line('0.5x',  document.getElementById('bd50').textContent);
+    line('1.5x',  document.getElementById('bd150').textContent);
+    line('2x',    document.getElementById('bd200').textContent);
+    line('2.5x',  document.getElementById('bd250').textContent);
+    line('3x',    document.getElementById('bd300').textContent);
+
+    h4('Status Points');
+    line('Total HP', document.getElementById('totalHP').value);
+    line('Total DP', document.getElementById('totalDP').value);
+    line('Total MP', document.getElementById('totalMP').value);
+
+    const entries = document.querySelectorAll('#talentList .bp-entry');
+    if (entries.length > 0) {
+      h4('BP Features');
+      entries.forEach(div => {
+        const txt = div.querySelector('textarea').value.trim();
+        const bp  = div.querySelector('.bp-cost').value;
+        if (txt || bp) { const p = document.createElement('p'); p.textContent = `• ${txt} (${bp || 0} BP)`; box.appendChild(p); }
+      });
+    }
+
+    const preview = document.getElementById('summaryPreview');
+    preview.innerHTML = '';
+
+    // Wrap content in inner padded div so it sits inside the double border
+    const inner = document.createElement('div');
+    inner.style.cssText = 'padding: 14px 16px;';
+    while (box.firstChild) inner.appendChild(box.firstChild);
+    box.appendChild(inner);
+
+    preview.appendChild(box);
+
+    html2canvas(box, { backgroundColor: '#ffffff', scale: 2 }).then(canvas => {
+      summaryImageData = canvas.toDataURL('image/png');
+    });
+  }
+
+  function downloadSummaryImage() {
+    if (!summaryImageData) { alert("Click 'View Summary' first."); return; }
+    let name = (document.getElementById('npcName').value.trim() || 'NPC').replace(/[<>:"/\\|?*]+/g,'');
+    const link = document.createElement('a');
+    link.href = summaryImageData;
+    link.download = name + ' Stat Summary.png';
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+
+  function saveTrackerJSON() {
+    const data = {
+      version: 1,
+      npcName:          document.getElementById('npcName').value,
+      theme:            document.getElementById('themeSelect').value,
+      cl:               document.getElementById('clSelect').value,
+      statusIncrease:   document.getElementById('statusIncrease').value,
+      attrPointChange:  document.getElementById('attrPointChange').value,
+      skillPointChange: document.getElementById('skillPointChange').value,
+      baseDamageChange: document.getElementById('baseDamageChange').value,
+      attrStr: document.getElementById('attrStr').value,
+      attrAgi: document.getElementById('attrAgi').value,
+      attrWit: document.getElementById('attrWit').value,
+      attrEmp: document.getElementById('attrEmp').value,
+      skills: Object.fromEntries(trackerSkillIds.map(id => [id, document.getElementById(id).value])),
+      talents: [...document.querySelectorAll('#talentList .bp-entry')].map(div => ({
+        text: div.querySelector('textarea').value,
+        bp:   div.querySelector('.bp-cost').value
+      }))
+    };
+
+    const name = (document.getElementById('npcName').value.trim() || 'NPC').replace(/[<>:"/\\|?*]+/g,'');
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${name}-stat-tracker.json`;
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(url); a.remove();
+  }
+
+  function loadTrackerJSON(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const d = JSON.parse(reader.result);
+
+        if (d.npcName !== undefined)        document.getElementById('npcName').value = d.npcName;
+        if (d.theme !== undefined)          document.getElementById('themeSelect').value = d.theme;
+        if (d.cl !== undefined)             { document.getElementById('clSelect').value = d.cl; }
+        if (d.statusIncrease !== undefined) document.getElementById('statusIncrease').value = d.statusIncrease;
+        if (d.attrPointChange !== undefined) document.getElementById('attrPointChange').value = d.attrPointChange;
+        if (d.skillPointChange !== undefined) document.getElementById('skillPointChange').value = d.skillPointChange;
+        if (d.baseDamageChange !== undefined) document.getElementById('baseDamageChange').value = d.baseDamageChange;
+        if (d.attrStr !== undefined) document.getElementById('attrStr').value = d.attrStr;
+        if (d.attrAgi !== undefined) document.getElementById('attrAgi').value = d.attrAgi;
+        if (d.attrWit !== undefined) document.getElementById('attrWit').value = d.attrWit;
+        if (d.attrEmp !== undefined) document.getElementById('attrEmp').value = d.attrEmp;
+
+        if (d.skills) {
+          Object.entries(d.skills).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+          });
+        }
+
+        // Restore BP features
+        const list = document.getElementById('talentList');
+        list.innerHTML = '';
+        (d.talents || []).forEach(({ text, bp }) => {
+          addTalent();
+          const last = list.querySelector('.bp-entry:last-child');
+          last.querySelector('textarea').value = text || '';
+          last.querySelector('.bp-cost').value = bp || '';
+        });
+
+        // Re-run all calculations
+        handleCLChange();
+        validateAttributeAllocation();
+        validateSkills();
+        recalculateBP();
+
+      } catch(e) {
+        alert('Could not read file. Is it a valid stat tracker JSON?');
+        console.error(e);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ─── Tabs ───
+  function switchTab(tab) {
+    const isTracker = tab === 'tracker';
+    document.getElementById('panelTracker').classList.toggle('active', isTracker);
+    document.getElementById('panelGenerator').classList.toggle('active', !isTracker);
+    document.getElementById('tabBtnTracker').classList.toggle('active', isTracker);
+    document.getElementById('tabBtnGenerator').classList.toggle('active', !isTracker);
+  }
+
+  // ─── Summary drawer ───
+  function viewSummary() {
+    try {
+      generateSummary();
+    } catch (e) {
+      console.error('generateSummary failed:', e);
+    }
+    openSummaryDrawer();
+  }
+  function openSummaryDrawer() {
+    document.getElementById('summaryDrawer').classList.add('open');
+    document.getElementById('summaryDrawer').setAttribute('aria-hidden', 'false');
+  }
+  function closeSummaryDrawer() {
+    document.getElementById('summaryDrawer').classList.remove('open');
+    document.getElementById('summaryDrawer').setAttribute('aria-hidden', 'true');
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSummaryDrawer();
+  });
+
+  // ─── Load tracked stats into the Stat Block Generator ───
+  const trackerToGeneratorSkillMap = {
+    skillBrawl:'Brawl', skillMight:'Might', skillEndure:'Endure', skillIntimidate:'Intimidate',
+    skillShoot:'Shoot', skillMove:'Move', skillFinesse:'Finesse', skillHide:'Hide',
+    skillAnalyze:'Analyze', skillInsight:'Insight', skillScout:'Scout', skillSurvival:'Survival',
+    skillManipulate:'Manipulate', skillMedical:'Medical', skillPerform:'Perform', skillTame:'Tame'
+  };
+
+  function loadTrackerIntoGenerator() {
+    const nameVal = document.getElementById('npcName').value.trim();
+    if (nameVal) document.getElementById('name').value = nameVal;
+
+    const cl = document.getElementById('clSelect').value;
+    if (cl !== '') document.getElementById('cl').value = cl;
+
+    const theme = document.getElementById('themeSelect').value;
+    if (theme) document.getElementById('theme').value = theme;
+
+    document.getElementById('STR').value = document.getElementById('attrStr').value || 0;
+    document.getElementById('AGI').value = document.getElementById('attrAgi').value || 0;
+    document.getElementById('WIT').value = document.getElementById('attrWit').value || 0;
+    document.getElementById('EMP').value = document.getElementById('attrEmp').value || 0;
+
+    document.getElementById('hp').value = document.getElementById('totalHP').value || 0;
+    document.getElementById('dp').value = document.getElementById('totalDP').value || 0;
+    document.getElementById('mp').value = document.getElementById('totalMP').value || 0;
+
+    Object.entries(trackerToGeneratorSkillMap).forEach(([trackerId, skillName]) => {
+      const val = parseInt(document.getElementById(trackerId).value) || 0;
+      const row = [...document.querySelectorAll('#skillsTable tr')].find(r => r.children[0].textContent === skillName);
+      if (row) {
+        const inp = row.querySelector('input.skillBase');
+        inp.value = val;
+        calcMod(inp);
+      }
+    });
+    updateAllModifiers();
+
+    switchTab('generator');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 </script>
 
 <!-- Starfield -->
