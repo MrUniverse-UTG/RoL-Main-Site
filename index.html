@@ -761,38 +761,6 @@
       bottom: 0%; left: 30%;
     }
 
-    /* ─── Scroll Indicator ─── */
-    .scroll-hint {
-      position: absolute;
-      bottom: 2.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-      opacity: 0;
-      animation: fadeIn 1s 1.5s ease forwards;
-      z-index: 2;
-    }
-    .scroll-hint span {
-      font-family: var(--font-heading);
-      font-size: 0.6rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-    .scroll-hint-bar {
-      width: 1px;
-      height: 40px;
-      background: linear-gradient(180deg, var(--gold), transparent);
-      animation: scrollPulse 2s ease infinite;
-    }
-    @keyframes scrollPulse {
-      0%, 100% { opacity: 0.3; transform: scaleY(1); }
-      50% { opacity: 1; transform: scaleY(1.3); }
-    }
-
     /* ─── Highlight Band ─── */
     .highlight-band {
       background: linear-gradient(135deg, rgba(201,168,76,0.06), rgba(79,195,247,0.04));
@@ -895,10 +863,6 @@
         <a href="https://discord.gg/D8beSNB8Tm" target="_blank" class="btn btn-discord">Join the Discord</a>
         <a href="#about" class="btn btn-secondary">Learn More</a>
       </div>
-    </div>
-    <div class="scroll-hint" aria-hidden="true">
-      <span>Explore</span>
-      <div class="scroll-hint-bar"></div>
     </div>
   </section>
 
