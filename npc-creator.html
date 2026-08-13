@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="images/icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Alegreya+SC:wght@400;500;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -19,7 +19,7 @@
       --cyan: #4fc3f7; --gold: #c9a84c; --gold-pale: #e8d5a3;
       --text: #c8d8f0; --text-dim: #7a90b8; --white: #eef2ff;
       --font-display: 'Cinzel Decorative', serif;
-      --font-heading: 'Cinzel', serif;
+      --font-heading: 'Alegreya SC', serif;
       --font-body: 'Crimson Pro', serif;
     }
     html { scroll-behavior: smooth; }
@@ -43,7 +43,7 @@
     .page-header { max-width: 900px; margin: 0 auto; padding: 3rem 2rem 2rem; border-bottom: 1px solid var(--border); }
     .page-header .breadcrumb { font-family: var(--font-heading); font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.6rem; }
     .page-header .breadcrumb a { color: var(--cyan); text-decoration: none; }
-    .page-header h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 3vw, 2.4rem); color: var(--white); margin-bottom: 0.75rem; }
+    .page-header h1 { font-family: var(--font-heading); font-size: clamp(1.5rem, 3vw, 2.4rem); color: var(--white); margin-bottom: 0.75rem; }
     .page-header p { font-size: 1.05rem; color: var(--text-dim); line-height: 1.8; max-width: 680px; }
     .tools-grid { max-width: 900px; margin: 2.5rem auto 5rem; padding: 0 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
     /* Three across, then straight to a single column — a two-column step would leave
